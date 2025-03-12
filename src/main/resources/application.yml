@@ -2,11 +2,15 @@ spring:
   application:
     name: lootopia-app
 
-    server:
-      port: 8080
-      servlet:
-        context-path: /api
+  logging:
+    level:
+      com.lootopia.lootopia_app: INFO
 
-logging:
-  level:
-    com.lootopia.lootopia_app: INFO
+  liquibase:
+    change-log: classpath:liquibase/db.changelog-master.xml
+
+  datasource:
+    url: jdbc:postgresql://ep-empty-dust-a9kmwkk2-pooler.gwc.azure.neon.tech:5432/lootopia?sslmode=require
+    username: lootopia_owner
+    password: npg_Qh02jkOzJEHm
+    driver-class-name: org.postgresql.Driver
