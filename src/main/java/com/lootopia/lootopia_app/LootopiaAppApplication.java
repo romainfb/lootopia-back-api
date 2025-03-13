@@ -4,15 +4,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener;
 
-@SpringBootApplication(exclude={DataSourceAutoConfiguration.class})
+import java.util.stream.Collectors;
+
+@SpringBootApplication
 public class LootopiaAppApplication {
 
 	private static final Logger logger = LoggerFactory.getLogger(LootopiaAppApplication.class);
 
 	public static void main(String[] args) {
-		SpringApplication.run(LootopiaAppApplication.class, args);
+		SpringApplication app = new SpringApplication(LootopiaAppApplication.class);
+
+		app.setListeners(app.getListeners()
+				.stream()
+				.filter(listener -> !(listener instanceof ConditionEvaluationReportLoggingListener))
+				.collect(Collectors.toList()));
+
+		app.run(args);
 
 		String port = "8080";
 		String contextPath = "/api";

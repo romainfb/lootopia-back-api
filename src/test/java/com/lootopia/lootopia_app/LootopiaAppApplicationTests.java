@@ -8,6 +8,7 @@ class LootopiaAppApplicationTests {
 
 	@Test
 	void contextLoads() {
+
 	}
 
 }

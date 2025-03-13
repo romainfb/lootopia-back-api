@@ -7,8 +7,8 @@
 
     <!-- Table Utilisateur -->
     <changeSet id="1" author="Florian Pescot-Jourdan">
-        <createTable tableName="Utilisateur">
-            <column name="id" type="uuid">
+        <createTable tableName="utilisateur">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="email" type="varchar(255)">
@@ -30,8 +30,8 @@
 
     <!-- Table Partenaire -->
     <changeSet id="2" author="Florian Pescot-Jourdan">
-        <createTable tableName="Partenaire">
-            <column name="id" type="uuid">
+        <createTable tableName="partenaire">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="nom_entreprise" type="varchar(255)">
@@ -43,23 +43,23 @@
             <column name="num_siret" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="organisateur_id" type="uuid">
+            <column name="organisateur_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
         </createTable>
         <!-- Add foreign key for organisateur_id -->
         <addForeignKeyConstraint
                 constraintName="fk_partenaire_organisateur"
-                baseTableName="Partenaire"
+                baseTableName="partenaire"
                 baseColumnNames="organisateur_id"
-                referencedTableName="Utilisateur"
+                referencedTableName="utilisateur"
                 referencedColumnNames="id"/>
     </changeSet>
 
     <!-- Table Chasse -->
     <changeSet id="3" author="Florian Pescot-Jourdan">
-        <createTable tableName="Chasse">
-            <column name="id" type="uuid">
+        <createTable tableName="chasse">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="titre" type="varchar(255)">
@@ -75,23 +75,23 @@
             <column name="nombre_participants" type="integer"/>
             <column name="frais_participation" type="decimal"/>
             <column name="chat_actif" type="boolean"/>
-            <column name="organisateur_id" type="uuid">
+            <column name="organisateur_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
         </createTable>
         <!-- Add foreign key for organisateur_id -->
         <addForeignKeyConstraint
                 constraintName="fk_chasse_organisateur"
-                baseTableName="Chasse"
+                baseTableName="chasse"
                 baseColumnNames="organisateur_id"
-                referencedTableName="Utilisateur"
+                referencedTableName="utilisateur"
                 referencedColumnNames="id"/>
     </changeSet>
 
     <!-- Table Participation -->
     <changeSet id="4" author="Florian Pescot-Jourdan">
-        <createTable tableName="Participation">
-            <column name="id" type="uuid">
+        <createTable tableName="participation">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="statut" type="varchar(50)">
@@ -100,44 +100,44 @@
             <column name="date_inscription" type="timestamp">
                 <constraints nullable="false"/>
             </column>
-            <column name="organisateur_id" type="uuid">
+            <column name="organisateur_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="utilisateur_id" type="uuid">
+            <column name="utilisateur_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="chasse_id" type="uuid">
+            <column name="chasse_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
         </createTable>
         <!-- Add foreign key constraints -->
         <addForeignKeyConstraint
                 constraintName="fk_participation_organisateur"
-                baseTableName="Participation"
+                baseTableName="participation"
                 baseColumnNames="organisateur_id"
-                referencedTableName="Utilisateur"
+                referencedTableName="utilisateur"
                 referencedColumnNames="id"/>
         <addForeignKeyConstraint
                 constraintName="fk_participation_utilisateur"
-                baseTableName="Participation"
+                baseTableName="participation"
                 baseColumnNames="utilisateur_id"
-                referencedTableName="Utilisateur"
+                referencedTableName="utilisateur"
                 referencedColumnNames="id"/>
         <addForeignKeyConstraint
                 constraintName="fk_participation_chasse"
-                baseTableName="Participation"
+                baseTableName="participation"
                 baseColumnNames="chasse_id"
-                referencedTableName="Chasse"
+                referencedTableName="chasse"
                 referencedColumnNames="id"/>
     </changeSet>
 
     <!-- Table Etape -->
     <changeSet id="5" author="Florian Pescot-Jourdan">
-        <createTable tableName="Etape">
-            <column name="id" type="uuid">
+        <createTable tableName="etape">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="chasse_id" type="uuid">
+            <column name="chasse_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
             <column name="description" type="text"/>
@@ -149,19 +149,19 @@
         <!-- Add foreign key for chasse_id -->
         <addForeignKeyConstraint
                 constraintName="fk_etape_chasse"
-                baseTableName="Etape"
+                baseTableName="etape"
                 baseColumnNames="chasse_id"
-                referencedTableName="Chasse"
+                referencedTableName="chasse"
                 referencedColumnNames="id"/>
     </changeSet>
 
     <!-- Table Cache -->
     <changeSet id="6" author="Florian Pescot-Jourdan">
-        <createTable tableName="Cache">
-            <column name="id" type="uuid">
+        <createTable tableName="cache">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="chasse_id" type="uuid">
+            <column name="chasse_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
             <column name="coordonnees_gps" type="point">
@@ -172,22 +172,22 @@
         <!-- Add foreign key for chasse_id -->
         <addForeignKeyConstraint
                 constraintName="fk_cache_chasse"
-                baseTableName="Cache"
+                baseTableName="cache"
                 baseColumnNames="chasse_id"
-                referencedTableName="Chasse"
+                referencedTableName="chasse"
                 referencedColumnNames="id"/>
     </changeSet>
 
     <!-- Table Recompense -->
     <changeSet id="7" author="Florian Pescot-Jourdan">
-        <createTable tableName="Recompense">
-            <column name="id" type="uuid">
+        <createTable tableName="recompense">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="chasse_id" type="uuid">
+            <column name="chasse_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="utilisateur_id" type="uuid">
+            <column name="utilisateur_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
             <column name="type" type="varchar(50)">
@@ -199,22 +199,22 @@
         <!-- Add foreign key constraints -->
         <addForeignKeyConstraint
                 constraintName="fk_recompense_chasse"
-                baseTableName="Recompense"
+                baseTableName="recompense"
                 baseColumnNames="chasse_id"
-                referencedTableName="Chasse"
+                referencedTableName="chasse"
                 referencedColumnNames="id"/>
         <addForeignKeyConstraint
                 constraintName="fk_recompense_utilisateur"
-                baseTableName="Recompense"
+                baseTableName="recompense"
                 baseColumnNames="utilisateur_id"
-                referencedTableName="Utilisateur"
+                referencedTableName="utilisateur"
                 referencedColumnNames="id"/>
     </changeSet>
 
     <!-- Table Artefact -->
     <changeSet id="8" author="Florian Pescot-Jourdan">
-        <createTable tableName="Artefact">
-            <column name="id" type="uuid">
+        <createTable tableName="artefact">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="nom" type="varchar(255)">
@@ -225,35 +225,16 @@
             </column>
             <column name="description" type="text"/>
             <column name="image" type="varchar(255)"/>
-            <column name="cache_id" type="uuid">
-                <constraints nullable="false"/>
-            </column>
-            <column name="utilisateur_id" type="uuid">
-                <constraints nullable="false"/>
-            </column>
         </createTable>
-        <!-- Add foreign key constraints -->
-        <addForeignKeyConstraint
-                constraintName="fk_artefact_cache"
-                baseTableName="Artefact"
-                baseColumnNames="cache_id"
-                referencedTableName="Cache"
-                referencedColumnNames="id"/>
-        <addForeignKeyConstraint
-                constraintName="fk_artefact_utilisateur"
-                baseTableName="Artefact"
-                baseColumnNames="utilisateur_id"
-                referencedTableName="Utilisateur"
-                referencedColumnNames="id"/>
     </changeSet>
 
-    <!-- Table Repere -->
+    <!-- Table Repère -->
     <changeSet id="9" author="Florian Pescot-Jourdan">
-        <createTable tableName="Repere">
-            <column name="id" type="uuid">
+        <createTable tableName="repere">
+            <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="etape_id" type="uuid">
+            <column name="etape_id" type="integer">
                 <constraints nullable="false"/>
             </column>
             <column name="coordonnees_gps" type="point">
@@ -266,19 +247,19 @@
         <!-- Add foreign key for etape_id -->
         <addForeignKeyConstraint
                 constraintName="fk_repere_etape"
-                baseTableName="Repere"
+                baseTableName="repere"
                 baseColumnNames="etape_id"
-                referencedTableName="Etape"
+                referencedTableName="etape"
                 referencedColumnNames="id"/>
     </changeSet>
 
     <!-- Table Transaction -->
-    <changeSet id="10" author="yourname">
-        <createTable tableName="Transaction">
-            <column name="id" type="uuid">
+    <changeSet id="10" author="Florian Pescot-Jourdan">
+        <createTable tableName="transaction">
+            <column name="id" type="BIGINT" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="utilisateur_id" type="uuid">
+            <column name="utilisateur_id" type="integer">
                 <constraints nullable="false"/>
             </column>
             <column name="montant" type="decimal">
@@ -290,23 +271,22 @@
             <column name="date" type="timestamp">
                 <constraints nullable="false"/>
             </column>
-            <column name="artefact_id" type="uuid">
+            <column name="artefact_id" type="integer">
                 <constraints nullable="false"/>
             </column>
         </createTable>
         <!-- Add foreign key constraints -->
         <addForeignKeyConstraint
                 constraintName="fk_transaction_utilisateur"
-                baseTableName="Transaction"
+                baseTableName="transaction"
                 baseColumnNames="utilisateur_id"
-                referencedTableName="Utilisateur"
+                referencedTableName="utilisateur"
                 referencedColumnNames="id"/>
         <addForeignKeyConstraint
                 constraintName="fk_transaction_artefact"
-                baseTableName="Transaction"
+                baseTableName="transaction"
                 baseColumnNames="artefact_id"
-                referencedTableName="Artefact"
+                referencedTableName="artefact"
                 referencedColumnNames="id"/>
     </changeSet>
-
 </databaseChangeLog>
