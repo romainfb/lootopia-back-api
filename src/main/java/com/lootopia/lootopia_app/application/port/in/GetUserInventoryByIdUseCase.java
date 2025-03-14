@@ -4,6 +4,6 @@ import com.lootopia.lootopia_app.domain.model.User;
 
 import java.util.Optional;
 
-public interface GetUserByIdUseCase {
-    Optional<User> getUserById(Long id_user);
+public interface GetUserInventoryByIdUseCase {
+    Optional<User> getUserInventory(Long id_user);
 }

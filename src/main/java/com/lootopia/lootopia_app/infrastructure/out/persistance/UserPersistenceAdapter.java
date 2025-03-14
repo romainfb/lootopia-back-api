@@ -4,6 +4,7 @@ import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
 import com.lootopia.lootopia_app.domain.model.User;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.mapper.UserMapper;
+import com.lootopia.lootopia_app.infrastructure.out.persistance.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

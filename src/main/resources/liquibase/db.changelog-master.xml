@@ -7,4 +7,5 @@
 
     <include file="changelog/changelog-create-tables.xml" relativeToChangelogFile="true"/>
     <include file="changelog/changelog-update-user.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-update-artifact.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

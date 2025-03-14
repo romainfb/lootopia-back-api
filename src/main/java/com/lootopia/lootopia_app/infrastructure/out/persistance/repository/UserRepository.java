@@ -1,4 +1,4 @@
-package com.lootopia.lootopia_app.infrastructure.out.persistance;
+package com.lootopia.lootopia_app.infrastructure.out.persistance.repository;
 
 import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
