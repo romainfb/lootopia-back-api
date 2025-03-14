@@ -1,6 +1,5 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest;
 
-
 import com.lootopia.lootopia_app.application.port.in.CreateHuntUseCase;
 import com.lootopia.lootopia_app.infrastructure.in.rest.mapper.HuntMapper;
 import com.lootopia.lootopia_app.domain.model.Hunt;
@@ -24,7 +23,6 @@ public class HuntController {
 
     private final CreateHuntUseCase createHuntUseCase;
     private final HuntMapper huntMapper;
-
 
     @Operation(summary = "Create a new hunt", description = "Endpoint to create a new hunt.")
     @ApiResponses(value = {

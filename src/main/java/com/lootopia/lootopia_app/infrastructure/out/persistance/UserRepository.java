@@ -1,12 +1,9 @@
 package com.lootopia.lootopia_app.infrastructure.out.persistance;
 
-import com.lootopia.lootopia_app.domain.model.User;
+import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
-    Optional<User> findByEmail(String email);
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
 }

@@ -1,34 +1,25 @@
 package com.lootopia.lootopia_app.infrastructure.out.persistance.entity;
 
+import com.lootopia.lootopia_app.domain.AccountType;
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "Utilisateur")
+@Table(name = "utilisateur")  // Noms de table en minuscules par convention
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "email", unique = true, nullable = false)
-    private String email;
-
-    @Column(name = "mot_de_passe", nullable = false)
-    private String password;
-
-    @Column(name = "pseudo", unique = true, nullable = false)
-    private String username;
-
     @Column(name = "type_compte", nullable = false)
-    private String accountType;
+    @Enumerated(EnumType.STRING)
+    private AccountType accountType;
 
     @Column(name = "solde_couronnes", nullable = false)
     private Integer balance;
-
-    @Column(name = "historique_activites")
-    private String activityHistory;
 }

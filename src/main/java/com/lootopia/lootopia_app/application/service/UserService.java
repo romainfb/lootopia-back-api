@@ -1,5 +1,6 @@
 package com.lootopia.lootopia_app.application.service;
 
+import com.lootopia.lootopia_app.application.port.in.GetUserByIdUseCase;
 import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
 import com.lootopia.lootopia_app.domain.model.User;
 import lombok.RequiredArgsConstructor;
@@ -9,12 +10,13 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements GetUserByIdUseCase {
 
     private final UserPersistencePort userPersistencePort;
 
-    public Optional<User> getUserById(Long id) {
-        return userPersistencePort.findById(id);
+    @Override
+    public Optional<User> getUserById(Long id_user) {
+        return userPersistencePort.findById(id_user);
     }
 
 }

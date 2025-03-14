@@ -2,6 +2,8 @@ package com.lootopia.lootopia_app.infrastructure.out.persistance;
 
 import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
 import com.lootopia.lootopia_app.domain.model.User;
+import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
+import com.lootopia.lootopia_app.infrastructure.out.persistance.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -15,7 +17,8 @@ public class UserPersistenceAdapter implements UserPersistencePort {
 
     @Override
     public Optional<User> findById(Long id) {
-        return userRepository.findById(id);
+        Optional<UserEntity> userEntity = userRepository.findById(id);
+        return userEntity.map(UserMapper::toDomain);
     }
-
+    
 }

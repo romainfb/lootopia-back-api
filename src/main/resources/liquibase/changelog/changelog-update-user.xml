@@ -3,8 +3,11 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
 
-    <include file="changelog/changelog-create-tables.xml" relativeToChangelogFile="true"/>
-    <include file="changelog/changelog-update-user.xml" relativeToChangelogFile="true"/>
+    <changeSet author="ton_nom" id="2.1">
+        <dropColumn tableName="utilisateur" columnName="email" />
+        <dropColumn tableName="utilisateur" columnName="mot_de_passe" />
+    </changeSet>
+
 </databaseChangeLog>

@@ -1,5 +1,6 @@
 package com.lootopia.lootopia_app.domain.model;
 
+import com.lootopia.lootopia_app.domain.AccountType;
 import lombok.*;
 
 @Data
@@ -8,10 +9,6 @@ import lombok.*;
 @NoArgsConstructor
 public class User {
     private Long id;
-    private String email;
-    private String password;
-    private String username;
-    private String accountType;
+    private AccountType accountType;
     private Integer balance;
-    private String activityHistory;
 }
