@@ -24,6 +24,7 @@ hs_err_pid*
 replay_pid*
 
 .node_modules
+pnpm-lock.yaml
 .idea
 
 /target/
