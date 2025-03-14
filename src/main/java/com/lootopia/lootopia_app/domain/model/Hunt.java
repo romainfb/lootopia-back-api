@@ -3,8 +3,6 @@ package com.lootopia.lootopia_app.domain.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "Chasse")
 @Data
