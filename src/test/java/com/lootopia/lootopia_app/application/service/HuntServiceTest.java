@@ -1,12 +1,15 @@
 package com.lootopia.lootopia_app.application.service;
 
+import com.lootopia.lootopia_app.application.port.out.HuntPersistencePort;
 import com.lootopia.lootopia_app.domain.model.Hunt;
-import com.lootopia.lootopia_app.infrastructure.out.persistance.HuntRepository;
+import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -14,7 +17,7 @@ import static org.mockito.Mockito.*;
 class HuntServiceTest {
 
     @Mock
-    private HuntRepository huntRepository;
+    private HuntPersistencePort huntPersistencePort;
 
     @InjectMocks
     private HuntService huntService;
@@ -26,13 +29,82 @@ class HuntServiceTest {
 
     @Test
     void createHunt_ShouldSaveAndReturnHunt() {
-        Hunt hunt = new Hunt();
-        when(huntRepository.save(hunt)).thenReturn(hunt);
+        Hunt hunt = Hunt.builder()
+                .title("Nouvelle chasse")
+                .description("Description")
+                .build();
+
+        when(huntPersistencePort.saveHunt(hunt)).thenReturn(hunt);
 
         Hunt result = huntService.createHunt(hunt);
 
         assertNotNull(result);
         assertEquals(hunt, result);
-        verify(huntRepository, times(1)).save(hunt);
+        verify(huntPersistencePort, times(1)).saveHunt(hunt);
+    }
+
+    @Test
+    void updateHunt_ShouldUpdateAndReturnUpdatedHunt() {
+        Long id = 1L;
+        Hunt existingHunt = Hunt.builder()
+                .id(id)
+                .title("Ancien titre")
+                .description("Ancienne description")
+                .mode("Solo")
+                .build();
+
+        // Objet d'update : seul le titre est modifié
+        Hunt update = Hunt.builder()
+                .title("Nouveau titre")
+                .build();
+
+        when(huntPersistencePort.findById(id)).thenReturn(Optional.of(existingHunt));
+        when(huntPersistencePort.saveHunt(existingHunt)).thenReturn(existingHunt);
+
+        Hunt result = huntService.updateHunt(id, update);
+
+        assertNotNull(result);
+        assertEquals("Nouveau titre", result.getTitle());
+        assertEquals("Ancienne description", result.getDescription());
+        assertEquals("Solo", result.getMode());
+        verify(huntPersistencePort, times(1)).findById(id);
+        verify(huntPersistencePort, times(1)).saveHunt(existingHunt);
+    }
+
+    @Test
+    void updateHunt_ShouldThrowException_WhenHuntNotFound() {
+        Long id = 1L;
+        Hunt update = Hunt.builder()
+                .title("Nouveau titre")
+                .build();
+
+        when(huntPersistencePort.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> huntService.updateHunt(id, update));
+        verify(huntPersistencePort, times(1)).findById(id);
+    }
+
+    @Test
+    void deleteHunt_ShouldDeleteHunt() {
+        Long id = 1L;
+        Hunt hunt = Hunt.builder()
+                .id(id)
+                .title("Chasse à supprimer")
+                .build();
+
+        when(huntPersistencePort.findById(id)).thenReturn(Optional.of(hunt));
+
+        huntService.deleteHunt(id);
+
+        verify(huntPersistencePort, times(1)).deleteHunt(hunt);
+    }
+
+    @Test
+    void deleteHunt_ShouldThrowException_WhenHuntNotFound() {
+        Long id = 1L;
+        when(huntPersistencePort.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> huntService.deleteHunt(id));
+        verify(huntPersistencePort, times(1)).findById(id);
     }
 }

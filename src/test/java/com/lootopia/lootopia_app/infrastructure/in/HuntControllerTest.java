@@ -1,9 +1,10 @@
-package com.lootopia.lootopia_app.infrastructure.in;
+package com.lootopia.lootopia_app.infrastructure.in.rest;
 
-import com.lootopia.lootopia_app.application.port.in.CreateHuntUseCase;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lootopia.lootopia_app.application.port.in.DeleteHuntUseCase;
+import com.lootopia.lootopia_app.application.port.in.UpdateHuntUseCase;
 import com.lootopia.lootopia_app.domain.model.Hunt;
-import com.lootopia.lootopia_app.infrastructure.in.rest.HuntController;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntRequest;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntUpdateRequest;
 import com.lootopia.lootopia_app.infrastructure.in.rest.mapper.HuntMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,18 +15,21 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 class HuntControllerTest {
 
     private MockMvc mockMvc;
 
     @Mock
-    private CreateHuntUseCase createHuntUseCase;
+    private UpdateHuntUseCase updateHuntUseCase;
+
+    @Mock
+    private DeleteHuntUseCase deleteHuntUseCase;
 
     @Mock
     private HuntMapper huntMapper;
@@ -42,45 +46,41 @@ class HuntControllerTest {
     }
 
     @Test
-    void createHunt_ShouldReturnCreatedHunt() throws Exception {
-        HuntRequest huntRequest = HuntRequest.builder()
-                .title("Chasse au trésor")
-                .description("Une grande chasse aux trésors")
-                .mode("solo")
-                .difficulty("moyenne")
-                .participationFees(10)
-                .chatEnabled(true)
-                .organizerId(1)
+    void updateHunt_ShouldReturnUpdatedHunt() throws Exception {
+        Long id = 1L;
+        HuntUpdateRequest updateRequest = HuntUpdateRequest.builder()
+                .title("Titre mis à jour")
+                .build();
+        Hunt huntFromMapper = Hunt.builder()
+                .title("Titre mis à jour")
+                .build();
+        Hunt updatedHunt = Hunt.builder()
+                .id(id)
+                .title("Titre mis à jour")
+                .description("Ancienne description")
                 .build();
 
-        Hunt hunt = new Hunt();
+        when(huntMapper.huntUpdateRequestToHunt(updateRequest)).thenReturn(huntFromMapper);
+        when(updateHuntUseCase.updateHunt(eq(id), any(Hunt.class))).thenReturn(updatedHunt);
 
-        when(huntMapper.huntRequestToHunt(huntRequest)).thenReturn(hunt);
-        when(createHuntUseCase.createHunt(hunt)).thenReturn(hunt);
-
-        mockMvc.perform(post("/api/admin/hunts/create")
+        mockMvc.perform(patch("/api/admin/hunts/" + id + "/update")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(huntRequest)))
-                .andExpect(status().isOk());
+                        .content(objectMapper.writeValueAsString(updateRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Titre mis à jour"));
 
-        verify(huntMapper, times(1)).huntRequestToHunt(huntRequest);
-        verify(createHuntUseCase, times(1)).createHunt(hunt);
+        verify(huntMapper, times(1)).huntUpdateRequestToHunt(updateRequest);
+        verify(updateHuntUseCase, times(1)).updateHunt(eq(id), any(Hunt.class));
     }
 
     @Test
-    void createHunt_ShouldReturnBadRequest_WhenInvalidRequest() throws Exception {
-        HuntRequest invalidRequest = HuntRequest.builder()
-                .description("Sans titre")
-                .mode("solo")
-                .difficulty("moyenne")
-                .organizerId(1)
-                .build();
+    void deleteHunt_ShouldReturnNoContent() throws Exception {
+        Long id = 1L;
+        doNothing().when(deleteHuntUseCase).deleteHunt(id);
 
-        mockMvc.perform(post("/api/admin/hunts/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(delete("/api/admin/hunts/" + id))
+                .andExpect(status().isNoContent());
 
-        verifyNoInteractions(createHuntUseCase);
+        verify(deleteHuntUseCase, times(1)).deleteHunt(id);
     }
 }
