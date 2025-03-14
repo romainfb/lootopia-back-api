@@ -13,7 +13,7 @@ public class LootopiaController {
     @GetMapping
     public Map<String, String> getApiStatus() {
         Map<String, String> response = new HashMap<>();
-        response.put("etat", "ok");
+        response.put("PING", "ALL_OK");
         return response;
     }
 }

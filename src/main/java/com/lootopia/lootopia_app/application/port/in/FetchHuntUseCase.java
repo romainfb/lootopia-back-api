@@ -8,7 +8,7 @@ public interface FetchHuntUseCase {
     List<Hunt> fetchAllHunts();
     Hunt fetchHuntDetail(Long id);
     List<Hunt> fetchHuntsByPriceRange(Double minPrice, Double maxPrice);
-    List<Hunt> fetchHuntsByComposition(boolean complete);
+    List<Hunt> fetchHuntsByComposition(boolean full);
     List<Hunt> fetchHuntsByDuration(Integer duration);
     List<Hunt> fetchHuntsByMode(String mode);
     List<Hunt> fetchHuntsByWorld(String world);

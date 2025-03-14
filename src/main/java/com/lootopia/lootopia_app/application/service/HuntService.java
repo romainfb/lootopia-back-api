@@ -3,7 +3,9 @@ package com.lootopia.lootopia_app.application.service;
 
 import com.lootopia.lootopia_app.application.port.in.FetchHuntUseCase;
 import com.lootopia.lootopia_app.application.port.out.HuntPersistencePort;
+import com.lootopia.lootopia_app.application.port.out.ParticipationPersistencePort;
 import com.lootopia.lootopia_app.domain.model.Hunt;
+import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import java.util.stream.Collectors;
 public class HuntService implements FetchHuntUseCase {
 
     private final HuntPersistencePort huntPersistencePort;
+    private final ParticipationPersistencePort participationPersistencePort;
+
     @Override
     public List<Hunt> fetchAllHunts() {
         return huntPersistencePort.findAll();
@@ -29,6 +33,9 @@ public class HuntService implements FetchHuntUseCase {
 
     @Override
     public List<Hunt> fetchHuntsByPriceRange(Double minPrice, Double maxPrice) {
+        if (minPrice > maxPrice) {
+            throw new InvalidParameterException("Le prix minimum ne peut pas être supérieur au prix maximum");
+        }
         return huntPersistencePort.findAll().stream()
                 .filter(h -> h.getParticipationFees() != null
                         && h.getParticipationFees() >= minPrice
@@ -37,9 +44,21 @@ public class HuntService implements FetchHuntUseCase {
     }
 
     @Override
-    public List<Hunt> fetchHuntsByComposition(boolean complete) {
+    public List<Hunt> fetchHuntsByComposition(boolean full) {
         return huntPersistencePort.findAll().stream()
-                .filter(h -> h.getCompositionComplete() != null && h.getCompositionComplete() == complete)
+                .filter(h -> {
+                    long nbParticipants = participationPersistencePort.countByHuntId(h.getId());
+
+                    if (h.getNumberOfParticipants() == null) {
+                        return false;
+                    }
+
+                    if (full) {
+                        return nbParticipants >= h.getNumberOfParticipants();
+                    } else {
+                        return nbParticipants < h.getNumberOfParticipants();
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
