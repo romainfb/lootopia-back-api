@@ -5,6 +5,7 @@ import com.lootopia.lootopia_app.domain.model.Hunt;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -26,5 +27,10 @@ public class HuntPersistenceAdapter implements HuntPersistencePort {
     @Override
     public void deleteHunt(Hunt hunt) {
         huntRepository.delete(hunt);
+    }
+
+    @Override
+    public List<Hunt> findAll() {
+        return huntRepository.findAll();
     }
 }

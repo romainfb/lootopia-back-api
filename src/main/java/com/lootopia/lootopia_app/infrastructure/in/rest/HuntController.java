@@ -1,70 +1,45 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest;
 
 
-import com.lootopia.lootopia_app.application.port.in.CreateHuntUseCase;
-import com.lootopia.lootopia_app.application.port.in.DeleteHuntUseCase;
-import com.lootopia.lootopia_app.application.port.in.UpdateHuntUseCase;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntUpdateRequest;
-import com.lootopia.lootopia_app.infrastructure.in.rest.mapper.HuntMapper;
+import com.lootopia.lootopia_app.application.port.in.FetchHuntUseCase;
 import com.lootopia.lootopia_app.domain.model.Hunt;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @Slf4j
 @RestController
 @Validated
-@RequestMapping("/api/admin/hunts")
+@RequestMapping("/api/hunts")
 @RequiredArgsConstructor
 public class HuntController {
 
-    private final CreateHuntUseCase createHuntUseCase;
-    private final UpdateHuntUseCase updateHuntUseCase;
-    private final DeleteHuntUseCase deleteHuntUseCase;
-    private final HuntMapper huntMapper;
+    private final FetchHuntUseCase fetchHuntUseCase;
 
-
-    @Operation(summary = "Create a new hunt", description = "Endpoint to create a new hunt.")
+    @Operation(summary = "Fetch all hunts", description = "Endpoint to fetch a list of hunts.")
     @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Hunts fetched successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Hunt.class))),
             @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(mediaType = "application/json"))
     })
-    @PostMapping()
-    //TODO : Add admin role verification
-    public Hunt createHunt(@RequestBody @Valid HuntRequest huntRequest) {
-        log.info("Creating new hunt : {}", huntRequest);
-        return createHuntUseCase.createHunt(huntMapper.huntRequestToHunt(huntRequest));
+    @GetMapping
+    public List<Hunt> getHunts() {
+        log.info("Fetching all hunts");
+        return fetchHuntUseCase.fetchAllHunts();
     }
 
-
-    @Operation(summary = "Create a new hunt", description = "Endpoint to create a new hunt.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "400", description = "Bad Request",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(mediaType = "application/json"))
-    })
-    @PatchMapping("/{id}/update")
-    public Hunt updateHunt(@PathVariable Long id,
-                           @RequestBody @Valid HuntUpdateRequest updateRequest) {
-        log.info("Updating hunt : {}", updateRequest);
-        return updateHuntUseCase.updateHunt(id,huntMapper.huntUpdateRequestToHunt(updateRequest));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteHunt(@PathVariable Long id) {
-        deleteHuntUseCase.deleteHunt(id);
-        return ResponseEntity.noContent().build();
-    }
 
 }

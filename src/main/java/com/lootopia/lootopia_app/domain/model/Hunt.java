@@ -35,4 +35,13 @@ public class Hunt {
 
     @Column(name = "organisateur_id")
     private Integer organizerId;
+
+    @Column(name = "monde")
+    private String world;
+
+    @Column(name = "duree")
+    private Integer duration;
+
+    @Column(name="nombre_participants")
+    private Integer numberOfParticipants;
 }
