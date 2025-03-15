@@ -13,7 +13,7 @@ spring:
     change-log: classpath:liquibase/db.changelog-master.xml
 
   datasource:
-    url: jdbc:postgresql://ep-empty-dust-a9kmwkk2-pooler.gwc.azure.neon.tech:5432/lootopia?sslmode=require
-    username: lootopia_owner
-    password: npg_Qh02jkOzJEHm
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver

@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener;
+import io.github.cdimascio.dotenv.Dotenv;
+
 
 import java.util.stream.Collectors;
 
@@ -15,6 +17,14 @@ public class LootopiaAppApplication {
 
 	public static void main(String[] args) {
 		SpringApplication app = new SpringApplication(LootopiaAppApplication.class);
+
+		Dotenv dotenv = Dotenv.configure()
+				.ignoreIfMissing()
+				.load();
+
+		dotenv.entries().forEach(entry -> {
+			System.setProperty(entry.getKey(), entry.getValue());
+		});
 
 		app.setListeners(app.getListeners()
 				.stream()
