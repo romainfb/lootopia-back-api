@@ -23,11 +23,13 @@ public class UserService implements GetUserByIdUseCase, GetUserInventoryByIdUseC
 
     @Override
     public Optional<User> getUserById(Long id_user) {
+        if (id_user==null) throw new IllegalArgumentException("User ID cannot be null");
         return userPersistencePort.findById(id_user);
     }
 
     @Override
     public Optional<User> getUserInventory(Long id_user) {
+        if (id_user==null) throw new IllegalArgumentException("User ID cannot be null");
         Optional<User> user = userPersistencePort.findById(id_user);
         user.ifPresent(u -> u.setArtifacts(getArtifactsByUserIdUseCase.getArtifactsByUserId(id_user)));
         return user;
@@ -35,6 +37,9 @@ public class UserService implements GetUserByIdUseCase, GetUserInventoryByIdUseC
 
     @Override
     public User createUser(UserRegisterFromKeycloakDto user) {
+        if (user==null || user.getId()==null || user.getUsername()==null) {
+            throw new IllegalArgumentException("User data cannot be null");
+        }
         UserEntity newUser = UserEntity.builder()
                 .keycloakId(user.getId())
                 .username(user.getUsername())

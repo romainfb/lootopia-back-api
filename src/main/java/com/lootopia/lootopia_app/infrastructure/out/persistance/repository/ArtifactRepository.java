@@ -4,12 +4,11 @@ import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.ArtifactE
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ArtifactRepository extends JpaRepository<ArtifactEntity, Long> {
 
-    Optional<ArtifactEntity> findByUser_Id(Long utilisateurId);
+    Optional<ArtifactEntity> findByUserId(Long utilisateurId);
 
 }

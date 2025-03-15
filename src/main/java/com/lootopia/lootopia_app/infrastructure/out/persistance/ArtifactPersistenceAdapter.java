@@ -1,7 +1,6 @@
 package com.lootopia.lootopia_app.infrastructure.out.persistance;
 
 import com.lootopia.lootopia_app.application.port.out.ArtifactPersistencePort;
-import com.lootopia.lootopia_app.application.port.out.RewardPersistencePort;
 import com.lootopia.lootopia_app.domain.model.Artifact;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.ArtifactEntity;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.mapper.ArtifactMapper;
@@ -22,7 +21,7 @@ public class ArtifactPersistenceAdapter implements ArtifactPersistencePort {
 
     @Override
     public List<Artifact> findByUserId(Long id) {
-        Optional<ArtifactEntity> artifactEntities = artifactRepository.findByUser_Id(id);
+        Optional<ArtifactEntity> artifactEntities = artifactRepository.findByUserId(id);
         if (artifactEntities == null || artifactEntities.isEmpty()) {
             return new ArrayList<>();
         }

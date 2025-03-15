@@ -15,5 +15,5 @@ public class Artifact {
     private String rarete;
     private String description;
     private String image;
-    private User user;
+    private Long userId;
 }

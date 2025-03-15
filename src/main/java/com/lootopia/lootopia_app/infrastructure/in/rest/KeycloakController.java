@@ -15,9 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/keycloak-event/")
 public class KeycloakController {
@@ -36,10 +33,9 @@ public class KeycloakController {
                     content = @Content(mediaType = "application/json"))
     })
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> getApiStatus( @Valid @RequestBody UserRegisterFromKeycloakDto user) {
-        Map<String, String> response = new HashMap<>();
+    public ResponseEntity<Void> getApiStatus( @Valid @RequestBody UserRegisterFromKeycloakDto user) {
         log.info("Keycloak register event received with user id: {}", user.getId());
         createUserUseCase.createUser(user);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok().build();
     }
 }
