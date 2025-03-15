@@ -26,6 +26,7 @@ replay_pid*
 .node_modules
 pnpm-lock.yaml
 .idea
+node_modules
 
 /target/
 !.mvn/wrapper/maven-wrapper.jar
@@ -190,3 +191,7 @@ README.html
 *.iml
 .idea
 .exercism
+.env
+pnpm-lock.yaml
+.pnpm-lock.yml
+
