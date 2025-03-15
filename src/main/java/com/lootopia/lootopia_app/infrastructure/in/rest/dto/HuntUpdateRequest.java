@@ -1,14 +1,12 @@
-package com.lootopia.lootopia_app.domain.model;
-import jakarta.persistence.*;
-import lombok.*;
+package com.lootopia.lootopia_app.infrastructure.in.rest.dto;
 
+
+import lombok.Builder;
+import lombok.Data;
 
 @Data
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class Hunt {
-    private Long id;
+public class HuntUpdateRequest {
     private String title;
     private String description;
     private String mode;
@@ -18,6 +16,4 @@ public class Hunt {
     private Integer organizerId;
     private String world;
     private Integer duration;
-    private Integer numberOfParticipants;
-
 }

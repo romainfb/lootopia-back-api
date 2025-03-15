@@ -24,6 +24,12 @@ public class HuntRequest {
     private Integer participationFees;
     private Boolean chatEnabled;
 
+    @NotNull(message = "La monde est obligatoire")
+    private String world;
+
+    @NotNull(message = "La durée est obligatoire")
+    private Integer duration;
+
     @NotNull(message = "L'organisateur est obligatoire")
     private Integer organizerId;
 }

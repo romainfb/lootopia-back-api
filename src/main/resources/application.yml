@@ -3,7 +3,7 @@ spring:
     name: lootopia-app
   logging:
     level:
-      org.springframework.validation: DEBUG
+      org.springframework.web: DEBUG
       org.springframework.jdbc.core: DEBUG
       org.springframework.jdbc.datasource: DEBUG
   liquibase:
