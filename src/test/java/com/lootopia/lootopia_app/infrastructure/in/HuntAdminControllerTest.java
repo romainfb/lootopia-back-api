@@ -7,15 +7,12 @@ import com.lootopia.lootopia_app.domain.model.Hunt;
 import com.lootopia.lootopia_app.infrastructure.in.rest.HuntAdminController;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntUpdateRequest;
 import com.lootopia.lootopia_app.infrastructure.in.rest.mapper.HuntMapper;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
