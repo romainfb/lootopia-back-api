@@ -21,7 +21,7 @@ import java.util.Optional;
 @Slf4j
 @RestController
 @Validated
-@RequestMapping("/api/admin/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 

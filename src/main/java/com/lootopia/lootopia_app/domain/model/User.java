@@ -11,6 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 public class User {
     private Long id;
+    private String username;
+    private String keycloakId;
     private AccountType accountType;
     private Integer balance;
     private List<Artifact> artifacts;

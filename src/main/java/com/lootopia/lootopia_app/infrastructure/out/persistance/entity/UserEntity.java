@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "utilisateur")  // Noms de table en minuscules par convention
+@Table(name = "utilisateur")
 @Data
 @Builder
 @AllArgsConstructor
@@ -15,6 +15,12 @@ public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "nom", nullable = true)
+    private String username;
+
+    @Column(name = "keycloak_id", nullable = true)
+    private String keycloakId;
 
     @Column(name = "type_compte", nullable = false)
     @Enumerated(EnumType.STRING)

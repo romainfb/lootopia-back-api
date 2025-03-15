@@ -7,6 +7,7 @@ public class UserMapper {
     public static User toDomain(UserEntity entity) {
         return User.builder()
                 .id(entity.getId())
+                .keycloakId(entity.getKeycloakId())
                 .accountType(entity.getAccountType())
                 .balance(entity.getBalance())
                 .build();
@@ -15,6 +16,7 @@ public class UserMapper {
     public static UserEntity toEntity(User domain) {
         return UserEntity.builder()
                 .id(domain.getId())
+                .keycloakId(domain.getKeycloakId())
                 .accountType(domain.getAccountType())
                 .balance(domain.getBalance())
                 .build();

@@ -16,6 +16,7 @@ public class RewardService implements GetRewardsByUserIdUseCase {
 
     @Override
     public List<Reward> getRewardsByUserId(Long id) {
+        if (id == null) throw new IllegalArgumentException("User ID cannot be null");
         return rewardPersistencePort.findByUserId(id);
     }
 

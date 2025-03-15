@@ -16,6 +16,7 @@ public class ArtefactService implements GetArtifactsByUserIdUseCase {
 
     @Override
     public List<Artifact> getArtifactsByUserId(Long id_user) {
+        if (id_user == null) throw new IllegalArgumentException("User ID cannot be null");
         return artefactPersistencePort.findByUserId(id_user);
     }
 

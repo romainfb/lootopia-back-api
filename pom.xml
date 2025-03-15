@@ -82,6 +82,11 @@
 		<!-- KEYCLOAK -->
 		<dependency>
 			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-admin-client</artifactId>
+			<version>26.0.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.keycloak</groupId>
 			<artifactId>keycloak-server-spi</artifactId>
 			<version>26.1.4</version>
 			<scope>provided</scope>
