@@ -6,4 +6,5 @@
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
 
     <include file="changelog/changelog-create-tables.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-add-world-and-duration-column-in-chasse.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

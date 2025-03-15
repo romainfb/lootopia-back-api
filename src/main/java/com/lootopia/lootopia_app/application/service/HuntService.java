@@ -1,58 +1,86 @@
 package com.lootopia.lootopia_app.application.service;
 
-import com.lootopia.lootopia_app.application.port.in.CreateHuntUseCase;
-import com.lootopia.lootopia_app.application.port.in.UpdateHuntUseCase;
-import com.lootopia.lootopia_app.application.port.in.DeleteHuntUseCase;
+
+import com.lootopia.lootopia_app.application.port.in.FetchHuntUseCase;
 import com.lootopia.lootopia_app.application.port.out.HuntPersistencePort;
+import com.lootopia.lootopia_app.application.port.out.ParticipationPersistencePort;
 import com.lootopia.lootopia_app.domain.model.Hunt;
+import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
-public class HuntService implements CreateHuntUseCase, UpdateHuntUseCase, DeleteHuntUseCase {
+public class HuntService implements FetchHuntUseCase {
 
     private final HuntPersistencePort huntPersistencePort;
+    private final ParticipationPersistencePort participationPersistencePort;
 
     @Override
-    public Hunt createHunt(Hunt hunt) {
-        return huntPersistencePort.saveHunt(hunt);
+    public List<Hunt> fetchAllHunts() {
+        return huntPersistencePort.findAll();
     }
 
     @Override
-    public Hunt updateHunt(Long id, Hunt hunt) {
-        Hunt existingHunt = huntPersistencePort.findById(id)
+    public Hunt fetchHuntDetail(Long id) {
+        return huntPersistencePort.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hunt", "id", id));
-
-        if (hunt.getTitle() != null) {
-            existingHunt.setTitle(hunt.getTitle());
-        }
-        if (hunt.getDescription() != null) {
-            existingHunt.setDescription(hunt.getDescription());
-        }
-        if (hunt.getMode() != null) {
-            existingHunt.setMode(hunt.getMode());
-        }
-        if (hunt.getDifficulty() != null) {
-            existingHunt.setDifficulty(hunt.getDifficulty());
-        }
-        if (hunt.getParticipationFees() != null) {
-            existingHunt.setParticipationFees(hunt.getParticipationFees());
-        }
-        if (hunt.getChatEnabled() != null) {
-            existingHunt.setChatEnabled(hunt.getChatEnabled());
-        }
-        if (hunt.getOrganizerId() != null) {
-            existingHunt.setOrganizerId(hunt.getOrganizerId());
-        }
-        return huntPersistencePort.saveHunt(existingHunt);
     }
 
     @Override
-    public void deleteHunt(Long id) {
-        Hunt existingHunt = huntPersistencePort.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Hunt", "id", id));
-        huntPersistencePort.deleteHunt(existingHunt);
+    public List<Hunt> fetchHuntsByPriceRange(Double minPrice, Double maxPrice) {
+        if (minPrice > maxPrice) {
+            throw new InvalidParameterException("Le prix minimum ne peut pas être supérieur au prix maximum");
+        }
+        return huntPersistencePort.findAll().stream()
+                .filter(h -> h.getParticipationFees() != null
+                        && h.getParticipationFees() >= minPrice
+                        && h.getParticipationFees() <= maxPrice)
+                .collect(Collectors.toList());
     }
+
+    @Override
+    public List<Hunt> fetchHuntsByComposition(boolean full) {
+        return huntPersistencePort.findAll().stream()
+                .filter(h -> {
+                    long nbParticipants = participationPersistencePort.countByHuntId(h.getId());
+
+                    if (h.getNumberOfParticipants() == null) {
+                        return false;
+                    }
+
+                    if (full) {
+                        return nbParticipants >= h.getNumberOfParticipants();
+                    } else {
+                        return nbParticipants < h.getNumberOfParticipants();
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Hunt> fetchHuntsByDuration(Integer duration) {
+        return huntPersistencePort.findAll().stream()
+                .filter(h -> h.getDuration() <= duration)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Hunt> fetchHuntsByMode(String mode) {
+        return huntPersistencePort.findAll().stream()
+                .filter(h -> h.getMode() != null && h.getMode().equalsIgnoreCase(mode))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Hunt> fetchHuntsByWorld(String world) {
+        return huntPersistencePort.findAll().stream()
+                .filter(h -> h.getWorld() != null && h.getWorld().equalsIgnoreCase(world))
+                .collect(Collectors.toList());
+    }
+
 }

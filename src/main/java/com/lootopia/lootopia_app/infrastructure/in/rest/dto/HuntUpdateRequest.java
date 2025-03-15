@@ -14,4 +14,6 @@ public class HuntUpdateRequest {
     private Integer participationFees;
     private Boolean chatEnabled;
     private Integer organizerId;
+    private String world;
+    private Integer duration;
 }
