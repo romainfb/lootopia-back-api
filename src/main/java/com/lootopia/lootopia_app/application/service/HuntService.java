@@ -1,9 +1,11 @@
 package com.lootopia.lootopia_app.application.service;
 
 
+
 import com.lootopia.lootopia_app.application.port.in.FetchHuntUseCase;
 import com.lootopia.lootopia_app.application.port.out.HuntPersistencePort;
 import com.lootopia.lootopia_app.application.port.out.ParticipationPersistencePort;
+
 import com.lootopia.lootopia_app.domain.model.Hunt;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;

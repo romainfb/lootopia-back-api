@@ -10,6 +10,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api")
 public class LootopiaController {
+
     @GetMapping
     public Map<String, String> getApiStatus() {
         Map<String, String> response = new HashMap<>();

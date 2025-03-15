@@ -84,6 +84,39 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<!-- KEYCLOAK -->
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-admin-client</artifactId>
+			<version>26.0.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-server-spi</artifactId>
+			<version>26.1.4</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-server-spi-private</artifactId>
+			<version>26.1.4</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-common</artifactId>
+			<version>26.1.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.keycloak</groupId>
+			<artifactId>keycloak-core</artifactId>
+			<version>26.1.4</version>
+		</dependency>
+
+
+
+
+
 		<!-- TESTING -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

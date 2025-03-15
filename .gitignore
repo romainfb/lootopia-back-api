@@ -24,6 +24,7 @@ hs_err_pid*
 replay_pid*
 
 .node_modules
+pnpm-lock.yaml
 .idea
 node_modules
 
@@ -193,3 +194,4 @@ README.html
 .env
 pnpm-lock.yaml
 .pnpm-lock.yml
+

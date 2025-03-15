@@ -1,0 +1,37 @@
+package com.lootopia.lootopia_app.infrastructure.out.persistance.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+
+@Entity
+@Table(name = "recompense")
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class RewardEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "chasse_id", nullable = false)
+    private Long chasseId;
+
+    @Column(name = "utilisateur_id", nullable = false)
+    private Long utilisateurId;
+
+    @Column(name = "type", nullable = false, length = 50)
+    private String type;
+
+    @Column(name = "valeur")
+    private BigDecimal valeur;
+
+    @Column(name = "description", length = 255)
+    private String description;
+}
