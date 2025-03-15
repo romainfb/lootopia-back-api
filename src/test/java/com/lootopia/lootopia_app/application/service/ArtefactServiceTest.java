@@ -2,6 +2,7 @@ package com.lootopia.lootopia_app.application.service;
 
 import com.lootopia.lootopia_app.application.port.out.ArtifactPersistencePort;
 import com.lootopia.lootopia_app.domain.model.Artifact;
+import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -40,6 +41,6 @@ class ArtefactServiceTest {
 
     @Test
     void getArtifactsByUserIdThrowsExceptionForNullUserId() {
-        assertThrows(IllegalArgumentException.class, () -> artefactService.getArtifactsByUserId(null));
+        assertThrows(InvalidParameterException.class, () -> artefactService.getArtifactsByUserId(null));
     }
 }

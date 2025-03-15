@@ -1,7 +1,6 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest;
 
-import com.lootopia.lootopia_app.application.port.in.GetUserByIdUseCase;
-import com.lootopia.lootopia_app.application.port.in.GetUserInventoryByIdUseCase;
+import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
 import com.lootopia.lootopia_app.domain.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,8 +24,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final GetUserByIdUseCase getUserByIdUseCase;
-    private final GetUserInventoryByIdUseCase getUserInventoryUseCase;
+    private final GetUserUseCase getUserUseCase;
 
     @Operation(summary = "Get user by ID", description = "Endpoint to Get user by ID")
     @ApiResponses(value = {
@@ -38,7 +36,7 @@ public class UserController {
     @GetMapping("/detail/{id_user}")
     public Optional<User> getUserById(@PathVariable @Valid Long id_user) {
         log.info("Retrieving user by id : {}", id_user);
-        return getUserByIdUseCase.getUserById(id_user);
+        return getUserUseCase.getUserById(id_user);
     }
 
     @Operation(summary = "Get user inventory", description = "Endpoint to Get user inventory by id")
@@ -51,7 +49,7 @@ public class UserController {
     @GetMapping("/inventory/{id_user}")
     public Optional<User> getUserInventory(@PathVariable @Valid Long id_user) {
         log.info("Retrieving user inventory with id : {}", id_user);
-        return getUserInventoryUseCase.getUserInventory(id_user);
+        return getUserUseCase.getUserInventory(id_user);
     }
 
 

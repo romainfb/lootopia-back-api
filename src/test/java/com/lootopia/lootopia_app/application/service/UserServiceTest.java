@@ -1,11 +1,12 @@
 package com.lootopia.lootopia_app.application.service;
 
 import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
-import com.lootopia.lootopia_app.application.port.in.GetArtifactsByUserIdUseCase;
+import com.lootopia.lootopia_app.application.port.in.GetArtifactsUseCase;
 import com.lootopia.lootopia_app.domain.AccountType;
 import com.lootopia.lootopia_app.domain.model.Artifact;
 import com.lootopia.lootopia_app.domain.model.User;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserRegisterFromKeycloakDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,7 @@ class UserServiceTest {
     private UserPersistencePort userPersistencePort;
 
     @Mock
-    private GetArtifactsByUserIdUseCase getArtifactsByUserIdUseCase;
+    private GetArtifactsUseCase getArtifactsUseCase;
 
     @InjectMocks
     private UserService userService;
@@ -49,13 +50,13 @@ class UserServiceTest {
 
     @Test
     void createUser_shouldThrowException_whenUserDtoIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(null));
+        assertThrows(InvalidParameterException.class, () -> userService.createUser(null));
     }
 
     @Test
     void createUser_shouldThrowException_whenUserDtoHasNullFields() {
         UserRegisterFromKeycloakDto dto = new UserRegisterFromKeycloakDto(null, null);
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(dto));
+        assertThrows(InvalidParameterException.class, () -> userService.createUser(dto));
     }
 
     @Test
@@ -72,7 +73,7 @@ class UserServiceTest {
 
     @Test
     void getUserById_shouldThrowException_whenUserIdIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> userService.getUserById(null));
+        assertThrows(InvalidParameterException.class, () -> userService.getUserById(null));
     }
 
     @Test
@@ -98,21 +99,21 @@ class UserServiceTest {
 
     @Test
     void getUserInventory_shouldThrowException_whenUserIdIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> userService.getUserInventory(null));
+        assertThrows(InvalidParameterException.class, () -> userService.getUserInventory(null));
     }
 
     @Test
     void getUserInventory_shouldReturnUserWithArtifacts() {
         List<Artifact> artifacts = List.of(new Artifact(1L, "testArtifact", "100", "testArtifact.png", "1L", 1L));
         when(userPersistencePort.findById(1L)).thenReturn(Optional.of(user));
-        when(getArtifactsByUserIdUseCase.getArtifactsByUserId(1L)).thenReturn(artifacts);
+        when(getArtifactsUseCase.getArtifactsByUserId(1L)).thenReturn(artifacts);
 
         Optional<User> result = userService.getUserInventory(1L);
 
         assertTrue(result.isPresent());
         assertEquals(artifacts, result.get().getArtifacts());
         verify(userPersistencePort).findById(1L);
-        verify(getArtifactsByUserIdUseCase).getArtifactsByUserId(1L);
+        verify(getArtifactsUseCase).getArtifactsByUserId(1L);
     }
 
     @Test
@@ -123,6 +124,6 @@ class UserServiceTest {
 
         assertTrue(result.isEmpty());
         verify(userPersistencePort).findById(1L);
-        verifyNoInteractions(getArtifactsByUserIdUseCase);
+        verifyNoInteractions(getArtifactsUseCase);
     }
 }

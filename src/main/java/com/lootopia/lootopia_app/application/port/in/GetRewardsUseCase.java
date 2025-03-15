@@ -4,7 +4,7 @@ import com.lootopia.lootopia_app.domain.model.Reward;
 
 import java.util.List;
 
-public interface GetRewardsByUserIdUseCase {
+public interface GetRewardsUseCase {
 
     List<Reward> getRewardsByUserId(Long id);
 }

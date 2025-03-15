@@ -2,6 +2,7 @@ package com.lootopia.lootopia_app.application.service;
 
 import com.lootopia.lootopia_app.application.port.out.RewardPersistencePort;
 import com.lootopia.lootopia_app.domain.model.Reward;
+import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -41,6 +42,6 @@ class RewardServiceTest {
 
     @Test
     void getRewardsByUserIdThrowsExceptionForNullUserId() {
-        assertThrows(IllegalArgumentException.class, () -> rewardService.getRewardsByUserId(null));
+        assertThrows(InvalidParameterException.class, () -> rewardService.getRewardsByUserId(null));
     }
 }
