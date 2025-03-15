@@ -1,6 +1,5 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest;
 
-
 import com.lootopia.lootopia_app.application.port.in.FetchHuntUseCase;
 import com.lootopia.lootopia_app.domain.model.Hunt;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,6 +25,7 @@ public class HuntController {
     private final FetchHuntUseCase fetchHuntUseCase;
 
     @Operation(summary = "Fetch all hunts", description = "Endpoint to fetch a list of hunts")
+
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Hunts fetched successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Hunt.class))),

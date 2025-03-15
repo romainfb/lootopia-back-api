@@ -1,7 +1,7 @@
 package com.lootopia.lootopia_app.domain.model;
-
 import jakarta.persistence.*;
 import lombok.*;
+
 
 @Data
 @Builder
