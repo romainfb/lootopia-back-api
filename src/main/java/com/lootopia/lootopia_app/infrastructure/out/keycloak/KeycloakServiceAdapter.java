@@ -1,6 +1,7 @@
-package com.lootopia.lootopia_app.infrastructure.out;
+package com.lootopia.lootopia_app.infrastructure.out.keycloak;
 
 import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserKeycloakUpdateDto;
 import jakarta.ws.rs.NotFoundException;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -53,47 +54,45 @@ public class KeycloakServiceAdapter implements KeycloakPort {
 
     @Override
     public boolean deleteUser(String userId) {
-        log.info("Deleting user with ID: " + userId);
-        log.info("realm: " + realm);
+        log.info("Deleting user with ID: {}", userId);
+        log.info("realm: {}", realm);
         try {
             Keycloak keycloak = getKeycloakInstance();
-            // Essayer de récupérer l'utilisateur pour vérifier s'il existe
             UserResource userResource = keycloak.realm(realm).users().get(userId);
-
-            // Si l'utilisateur est récupéré, on le supprime
             userResource.remove();
-            log.info("User with ID " + userId + " deleted successfully.");
+            log.info("User with ID {} deleted successfully from Keycloak.", userId);
             return true;
         } catch (NotFoundException e) {
-            // Si l'utilisateur n'est pas trouvé, Keycloak lance une exception NotFoundException
-            log.warn("User with ID " + userId + " does not exist.");
+            log.warn("User with ID {} does not exist in keycloak database.", userId);
             return false;
         } catch (Exception e) {
-            log.error("Error deleting user with ID: " + userId, e);
+            log.error("Error deleting user with ID from keycloak: {}", userId, e);
             return false;
         }
     }
 
     @Override
-    public UserRepresentation updateUser(String userId, String firstName, String lastName, String email) {
+    public UserRepresentation updateUser(UserKeycloakUpdateDto userDto) {
+        log.info("Updating user in keycloak database with data: {}", userDto);
         try {
             Keycloak keycloak = getKeycloakInstance();
-            UserRepresentation user = keycloak.realm(realm).users().get(userId).toRepresentation();
+            UserRepresentation user = keycloak.realm(realm).users().get(userDto.getId()).toRepresentation();
 
-            user.setFirstName(firstName);
-            user.setLastName(lastName);
-            user.setEmail(email);
-            user.setEmailVerified(true);
+            user.setFirstName(userDto.getFirstName());
+            user.setLastName(userDto.getLastName());
+            user.setEmail(userDto.getEmail());
+            user.setUsername(userDto.getUsername());
+            keycloak.realm(realm).users().get(userDto.getId()).update(user);
 
-            keycloak.realm(realm).users().get(userId).update(user);
-
-            return keycloak.realm(realm).users().get(userId).toRepresentation();
+            return keycloak.realm(realm).users().get(userDto.getId()).toRepresentation();
         } catch (NotFoundException e) {
-            throw new RuntimeException("Utilisateur non trouvé avec l'ID: " + userId, e);
+            throw new RuntimeException("User with ID " + userDto.getId() + " does not exist in keycloak database.", e);
         } catch (Exception e) {
-            throw new RuntimeException("Erreur lors de la mise à jour de l'utilisateur: " + e.getMessage(), e);
+            throw new RuntimeException("Error while updating user in keycloak: " + e.getMessage(), e);
         }
     }
+
+
 
     @Override
     public boolean updatePassword(String userId, String newPassword) {
