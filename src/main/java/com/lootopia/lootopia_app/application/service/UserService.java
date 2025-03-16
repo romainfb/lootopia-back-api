@@ -1,8 +1,10 @@
 package com.lootopia.lootopia_app.application.service;
 
 import com.lootopia.lootopia_app.application.port.in.CreateUserUseCase;
+import com.lootopia.lootopia_app.application.port.in.DeleteUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetArtifactsUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
+import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
 import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
 import com.lootopia.lootopia_app.domain.AccountType;
 import com.lootopia.lootopia_app.domain.model.User;
@@ -16,9 +18,10 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements GetUserUseCase, CreateUserUseCase {
+public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUserUseCase {
 
     private final UserPersistencePort userPersistencePort;
+    private final KeycloakPort keycloakPort;
     private final GetArtifactsUseCase getArtifactsUseCase;
 
     @Override
@@ -47,5 +50,18 @@ public class UserService implements GetUserUseCase, CreateUserUseCase {
                 .balance(0)
                 .build();
         return userPersistencePort.save(newUser);
+    }
+
+    @Override
+    public void deleteUser(Long id_user) {
+        //TODO: L UTILISATEUR N EST PAS SUPPRIME DANS KEYCLOAK
+        if (id_user == null) throw new InvalidParameterException("User ID cannot be null");
+        User user = userPersistencePort.findById(id_user)
+                .orElseThrow(() -> new InvalidParameterException("User with ID " + id_user + " not found"));
+        if (keycloakPort.deleteUser(user.getKeycloakId())) {
+            userPersistencePort.deleteById(id_user);
+        } else {
+            throw new RuntimeException("Failed to delete user from Keycloak");
+        }
     }
 }

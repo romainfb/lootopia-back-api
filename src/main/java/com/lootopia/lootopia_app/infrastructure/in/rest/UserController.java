@@ -1,5 +1,6 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest;
 
+import com.lootopia.lootopia_app.application.port.in.DeleteUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
 import com.lootopia.lootopia_app.domain.model.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,10 +10,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
@@ -25,6 +29,7 @@ import java.util.Optional;
 public class UserController {
 
     private final GetUserUseCase getUserUseCase;
+    private final DeleteUserUseCase deleteUserUseCase;
 
     @Operation(summary = "Get user by ID", description = "Endpoint to Get user by ID")
     @ApiResponses(value = {
@@ -52,5 +57,17 @@ public class UserController {
         return getUserUseCase.getUserInventory(id_user);
     }
 
-
+    @Operation(summary = "Delete user by ID", description = "Endpoint to Delete user by ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "400", description = "Bad Request",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(mediaType = "application/json"))
+    })
+    @DeleteMapping("/{id_user}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUserById(@PathVariable @Valid Long id_user) {
+        log.info("Deleting user by id : {}", id_user);
+        deleteUserUseCase.deleteUser(id_user);
+    }
 }
