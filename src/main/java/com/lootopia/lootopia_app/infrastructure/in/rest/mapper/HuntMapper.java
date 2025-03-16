@@ -1,14 +1,14 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest.mapper;
 
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntRequest;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntRequestDto;
 import com.lootopia.lootopia_app.domain.model.Hunt;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntUpdateRequest;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntUpdateRequestDto;
 import org.springframework.stereotype.Component;
 
 @Component
 public class HuntMapper {
 
-    public Hunt huntRequestToHunt(HuntRequest huntRequest) {
+    public Hunt huntRequestToHunt(HuntRequestDto huntRequest) {
 
         if(huntRequest == null) {
             return null;
@@ -25,7 +25,7 @@ public class HuntMapper {
                 .build();
     }
 
-    public Hunt huntUpdateRequestToHunt(HuntUpdateRequest updateRequest) {
+    public Hunt huntUpdateRequestToHunt(HuntUpdateRequestDto updateRequest) {
 
         if(updateRequest == null) {
             return null;

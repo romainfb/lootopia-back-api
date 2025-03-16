@@ -1,5 +1,6 @@
 package com.lootopia.lootopia_app.infrastructure.out.persistance.entity;
 
+import com.lootopia.lootopia_app.domain.ParticipationStatut;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,12 +22,13 @@ public class ParticipationEntity {
     private Long id;
 
     @Column(name = "statut")
-    private String statut;
+    @Enumerated(EnumType.STRING)
+    private ParticipationStatut statut;
 
     @Column(name = "date_inscription")
     private Timestamp dateInscription;
 
-    @Column(name = "organiseur_id")
+    @Column(name = "organisateur_id")
     private Integer organizerId;
 
     @Column(name = "utilisateur_id")
