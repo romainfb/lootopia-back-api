@@ -7,9 +7,9 @@ import com.lootopia.lootopia_app.domain.AccountType;
 import com.lootopia.lootopia_app.domain.model.Artifact;
 import com.lootopia.lootopia_app.domain.model.User;
 import com.lootopia.lootopia_app.domain.model.UserInventory;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserKeycloakUpdateDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdatedDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserRegisterFromKeycloakDto;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdateDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserToUpdateDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
@@ -155,7 +155,7 @@ class UserServiceTest {
 
     @Test
     void updateUser_shouldThrowException_whenUserIdIsNull() {
-        assertThrows(ResourceNotFoundException.class, () -> userService.updateUser(new UserUpdateDto(
+        assertThrows(ResourceNotFoundException.class, () -> userService.updateUser(new UserToUpdateDto(
                 "test@gmail.com", "firstName", "lastName", "username"
         ), 12341234L));
     }
@@ -163,24 +163,27 @@ class UserServiceTest {
     @Test
     void updateUser_shouldThrowException_whenUserNotFound() {
         when(userPersistencePort.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> userService.updateUser(new UserUpdateDto(
+        assertThrows(ResourceNotFoundException.class, () -> userService.updateUser(new UserToUpdateDto(
                 "test@gmail.com", "firstName", "lastName", "username"
         ), 1L));
     }
 
     @Test
-    void updateUser_shouldUpdateUser_whenUserExists() {
-        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(user));
-        UserUpdateDto updateDto = new UserUpdateDto(
+    void updateUser_shouldThrowException_whenUserDoesNotExist() {
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.empty());
+
+        UserToUpdateDto updateDto = new UserToUpdateDto(
                 "newEmail@example.com", "newFirstName", "newLastName", "newUsername"
         );
 
-        userService.updateUser(updateDto, 1L);
+        assertThrows(ResourceNotFoundException.class, () -> {
+            userService.updateUser(updateDto, 1L);
+        });
 
-        verify(userPersistencePort).save(any(UserEntity.class));
-        verify(keycloakPort).updateUser(any(UserKeycloakUpdateDto.class));
+        verify(userPersistencePort, times(1)).findById(1L);
+        verify(userPersistencePort, never()).save(any(UserEntity.class));
+        verify(keycloakPort, never()).updateUser(any(UserUpdatedDto.class));
     }
-
     @Test
     void updatePassword_shouldThrowException_whenUserIdIsNull() {
         assertThrows(ResourceNotFoundException.class, () -> userService.updatePassword("newPassword", null));

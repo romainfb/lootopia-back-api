@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @Builder
 @AllArgsConstructor
-public class UserKeycloakUpdateDto {
+public class UserUpdatedDto {
 
     private String id;
 

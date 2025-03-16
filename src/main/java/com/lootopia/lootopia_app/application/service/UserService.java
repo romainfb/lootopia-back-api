@@ -11,14 +11,15 @@ import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
 import com.lootopia.lootopia_app.domain.AccountType;
 import com.lootopia.lootopia_app.domain.model.User;
 import com.lootopia.lootopia_app.domain.model.UserInventory;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserKeycloakUpdateDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdatedDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserRegisterFromKeycloakDto;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdateDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserToUpdateDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -79,7 +80,7 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
     }
 
     @Override
-    public UserKeycloakUpdateDto updateUser(UserUpdateDto user, Long id_user) {
+    public UserUpdatedDto updateUser(UserToUpdateDto user, Long id_user) {
         User existingUser = userPersistencePort.findById(id_user)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id_user));
 
@@ -88,7 +89,7 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
             userPersistencePort.save(UserMapper.toEntity(existingUser));
         }
 
-        UserKeycloakUpdateDto keycloakUpdateDto = UserKeycloakUpdateDto.builder()
+        UserUpdatedDto keycloakUpdateDto = UserUpdatedDto.builder()
                 .id(existingUser.getKeycloakId())
                 .username(user.getUsername())
                 .email(user.getEmail())
@@ -96,8 +97,15 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
                 .lastName(user.getLastName())
                 .build();
 
-        keycloakPort.updateUser(keycloakUpdateDto);
-        return keycloakUpdateDto;
+        UserRepresentation userFromKeycloak = keycloakPort.updateUser(keycloakUpdateDto);
+
+        return UserUpdatedDto.builder()
+                .id(String.valueOf(id_user))
+                .username(userFromKeycloak.getUsername())
+                .email(userFromKeycloak.getEmail())
+                .firstName(userFromKeycloak.getFirstName())
+                .lastName(userFromKeycloak.getLastName())
+                .build();
     }
 
     @Override

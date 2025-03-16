@@ -7,8 +7,8 @@ import com.lootopia.lootopia_app.domain.model.Hunt;
 import com.lootopia.lootopia_app.domain.model.User;
 import com.lootopia.lootopia_app.domain.model.UserInventory;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UpdatePasswordRequestDto;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserKeycloakUpdateDto;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdateDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserToUpdateDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdatedDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -82,8 +82,8 @@ public class UserController {
                     content = @Content(mediaType = "application/json"))
     })
     @PatchMapping("/{id}/update")
-    public UserKeycloakUpdateDto updateUser(@PathVariable Long id,
-                                            @RequestBody @Valid UserUpdateDto userDto) {
+    public UserUpdatedDto updateUser(@PathVariable Long id,
+                                     @RequestBody @Valid UserToUpdateDto userDto) {
         log.info("Updating user : {}", userDto);
         return updateUserUseCase.updateUser(userDto, id);
     }

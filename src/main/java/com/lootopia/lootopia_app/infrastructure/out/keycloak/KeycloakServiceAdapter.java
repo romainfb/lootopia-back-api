@@ -1,7 +1,7 @@
 package com.lootopia.lootopia_app.infrastructure.out.keycloak;
 
 import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserKeycloakUpdateDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdatedDto;
 import jakarta.ws.rs.NotFoundException;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
@@ -72,7 +72,7 @@ public class KeycloakServiceAdapter implements KeycloakPort {
     }
 
     @Override
-    public UserRepresentation updateUser(UserKeycloakUpdateDto userDto) {
+    public UserRepresentation updateUser(UserUpdatedDto userDto) {
         log.info("Updating user in keycloak database with data: {}", userDto);
         try {
             Keycloak keycloak = getKeycloakInstance();

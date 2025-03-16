@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 @Builder
 @AllArgsConstructor
-public class UserUpdateDto {
+public class UserToUpdateDto {
 
     @ValidEmail(nullable = true)
     private String email;

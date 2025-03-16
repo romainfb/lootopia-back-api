@@ -1,9 +1,9 @@
 package com.lootopia.lootopia_app.application.port.in;
 
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserKeycloakUpdateDto;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdateDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserToUpdateDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdatedDto;
 
 public interface UpdateUserUseCase {
-    UserKeycloakUpdateDto updateUser(UserUpdateDto userUpdateDto, Long userId);
+    UserUpdatedDto updateUser(UserToUpdateDto userToUpdateDto, Long userId);
     Boolean updatePassword(String password, Long userId);
 }

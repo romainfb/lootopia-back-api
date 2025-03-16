@@ -6,8 +6,8 @@ import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.UpdateUserUseCase;
 import com.lootopia.lootopia_app.domain.model.User;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UpdatePasswordRequestDto;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserKeycloakUpdateDto;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdateDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdatedDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserToUpdateDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -75,9 +75,9 @@ class UserControllerTest {
     @Test
     void updateUser_ShouldReturnUpdatedUserWhenSuccessful() throws Exception {
         Long id = 1L;
-        UserUpdateDto updateRequest = new UserUpdateDto("email@gmail.com", "firstName", "lastName", "username");
+        UserToUpdateDto updateRequest = new UserToUpdateDto("email@gmail.com", "firstName", "lastName", "username");
 
-        UserKeycloakUpdateDto updatedUser = UserKeycloakUpdateDto.builder()
+        UserUpdatedDto updatedUser = UserUpdatedDto.builder()
                 .id("keycloak-id")
                 .username("username")
                 .email("email@gmail.com")
