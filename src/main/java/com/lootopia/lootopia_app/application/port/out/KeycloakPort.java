@@ -12,6 +12,4 @@ public interface KeycloakPort {
     UserRepresentation updateUser(String userId, String firstName, String lastName, String email);
 
     boolean updatePassword(String userId, String newPassword);
-
-    UserRepresentation setUserEnabled(String userId, boolean enabled);
 }
