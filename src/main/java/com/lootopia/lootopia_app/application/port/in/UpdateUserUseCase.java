@@ -5,4 +5,5 @@ import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdateDto;
 
 public interface UpdateUserUseCase {
     UserKeycloakUpdateDto updateUser(UserUpdateDto userUpdateDto, Long userId);
+    Boolean updatePassword(String password, Long userId);
 }

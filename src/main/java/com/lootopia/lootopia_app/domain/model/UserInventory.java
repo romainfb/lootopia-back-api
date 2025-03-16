@@ -1,19 +1,18 @@
 package com.lootopia.lootopia_app.domain.model;
 
-import com.lootopia.lootopia_app.domain.AccountType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class UserInventory {
     private Long id;
-    private String username;
-    private String keycloakId;
-    private AccountType accountType;
     private Integer balance;
+    private List<Artifact> artifacts;
 }

@@ -10,6 +10,7 @@ import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
 import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
 import com.lootopia.lootopia_app.domain.AccountType;
 import com.lootopia.lootopia_app.domain.model.User;
+import com.lootopia.lootopia_app.domain.model.UserInventory;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserKeycloakUpdateDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserRegisterFromKeycloakDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdateDto;
@@ -37,11 +38,18 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
     }
 
     @Override
-    public Optional<User> getUserInventory(Long id_user) {
+    public Optional<UserInventory> getUserInventory(Long id_user) {
         if (id_user==null) throw new InvalidParameterException("User ID cannot be null");
         Optional<User> user = userPersistencePort.findById(id_user);
-        user.ifPresent(u -> u.setArtifacts(getArtifactsUseCase.getArtifactsByUserId(id_user)));
-        return user;
+        if (user.isPresent()) {
+            UserInventory userInventory = UserInventory.builder()
+                    .id(id_user)
+                    .artifacts(getArtifactsUseCase.getArtifactsByUserId(id_user))
+                    .build();
+            return Optional.of(userInventory);
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
@@ -91,4 +99,13 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
         keycloakPort.updateUser(keycloakUpdateDto);
         return keycloakUpdateDto;
     }
+
+    @Override
+    public Boolean updatePassword(String password, Long userId) {
+        User user = userPersistencePort.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        return keycloakPort.updatePassword(user.getKeycloakId(), password);
+    }
+
+
 }

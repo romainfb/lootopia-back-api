@@ -5,11 +5,10 @@ import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.UpdateUserUseCase;
 import com.lootopia.lootopia_app.domain.model.Hunt;
 import com.lootopia.lootopia_app.domain.model.User;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntUpdateRequest;
+import com.lootopia.lootopia_app.domain.model.UserInventory;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UpdatePasswordRequestDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserKeycloakUpdateDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdateDto;
-import com.lootopia.lootopia_app.infrastructure.in.rest.mapper.UserMapper;
-import com.lootopia.lootopia_app.infrastructure.out.keycloak.UserKeycloak;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,9 +24,9 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
@@ -45,19 +44,20 @@ public class UserController {
 
     @Operation(summary = "Get user by ID", description = "Endpoint to Get user by ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "400", description = "Bad Request",
+            @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(mediaType = "application/json"))
     })
     @GetMapping("/detail/{id_user}")
-    public Optional<User> getUserById(@PathVariable @Valid Long id_user) {
+    public ResponseEntity<User> getUserById(@PathVariable @Valid Long id_user) {
         log.info("Retrieving user by id : {}", id_user);
-        return getUserUseCase.getUserById(id_user);
+        return getUserUseCase.getUserById(id_user)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "Get user inventory", description = "Endpoint to Get user inventory by id")
-    //tdo: Return a userInventory not a user
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = @Content(mediaType = "application/json")),
@@ -65,7 +65,7 @@ public class UserController {
                     content = @Content(mediaType = "application/json"))
     })
     @GetMapping("/inventory/{id_user}")
-    public Optional<User> getUserInventory(@PathVariable @Valid Long id_user) {
+    public Optional<UserInventory> getUserInventory(@PathVariable @Valid Long id_user) {
         log.info("Retrieving user inventory with id : {}", id_user);
         return getUserUseCase.getUserInventory(id_user);
     }
@@ -86,6 +86,28 @@ public class UserController {
                                             @RequestBody @Valid UserUpdateDto userDto) {
         log.info("Updating user : {}", userDto);
         return updateUserUseCase.updateUser(userDto, id);
+    }
+
+    @Operation(summary = "Update user password", description = "Endpoint to update user password in Keycloak.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "update successful",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Hunt.class))),
+            @ApiResponse(responseCode = "400", description = "Bad Request",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(mediaType = "application/json"))
+    })
+    @PutMapping("/{id}/key/update")
+    public ResponseEntity<Void> updateUserPassword(@PathVariable Long id,
+                                                   @RequestBody @Valid UpdatePasswordRequestDto dto) {
+        boolean isUpdated = updateUserUseCase.updatePassword(dto.getPassword(), id);
+        if (isUpdated) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
     }
 
     @Operation(summary = "Delete user by ID", description = "Endpoint to Delete user by ID")

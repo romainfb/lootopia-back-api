@@ -11,8 +11,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class UserUpdateDto {
 
-    @Nullable
-    @ValidEmail
+    @ValidEmail(nullable = true)
     private String email;
 
     @Nullable

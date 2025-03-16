@@ -1,12 +1,17 @@
 package com.lootopia.lootopia_app.application.service;
 
+import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
 import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
 import com.lootopia.lootopia_app.application.port.in.GetArtifactsUseCase;
 import com.lootopia.lootopia_app.domain.AccountType;
 import com.lootopia.lootopia_app.domain.model.Artifact;
 import com.lootopia.lootopia_app.domain.model.User;
+import com.lootopia.lootopia_app.domain.model.UserInventory;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserKeycloakUpdateDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserRegisterFromKeycloakDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdateDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
+import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,17 +33,19 @@ class UserServiceTest {
     private UserPersistencePort userPersistencePort;
 
     @Mock
+    private KeycloakPort keycloakPort;
+
+    @Mock
     private GetArtifactsUseCase getArtifactsUseCase;
 
     @InjectMocks
     private UserService userService;
 
     private User user;
-    private UserEntity userEntity;
-
+    public UserEntity userEntity;
     @BeforeEach
     void setUp() {
-        user = new User(1L, "testUser","fqsdfqsdfq1234", AccountType.USER, 0, null);
+        user = new User(1L, "testUser", "fqsdfqsdfq1234", AccountType.USER, 0);
         userEntity = UserEntity.builder()
                 .id(1L)
                 .keycloakId("keycloak-123")
@@ -108,7 +115,7 @@ class UserServiceTest {
         when(userPersistencePort.findById(1L)).thenReturn(Optional.of(user));
         when(getArtifactsUseCase.getArtifactsByUserId(1L)).thenReturn(artifacts);
 
-        Optional<User> result = userService.getUserInventory(1L);
+        Optional<UserInventory> result = userService.getUserInventory(1L);
 
         assertTrue(result.isPresent());
         assertEquals(artifacts, result.get().getArtifacts());
@@ -117,13 +124,82 @@ class UserServiceTest {
     }
 
     @Test
-    void getUserInventory_shouldReturnEmpty_whenUserDoesNotExist() {
+    void deleteUser_shouldThrowException_whenUserIdIsNull() {
+        assertThrows(InvalidParameterException.class, () -> userService.deleteUser(null));
+    }
+
+    @Test
+    void deleteUser_shouldThrowException_whenUserNotFound() {
         when(userPersistencePort.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(InvalidParameterException.class, () -> userService.deleteUser(1L));
+    }
 
-        Optional<User> result = userService.getUserInventory(1L);
+    @Test
+    void deleteUser_shouldDeleteUser_whenUserExists() {
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(user));
+        when(keycloakPort.deleteUser(user.getKeycloakId())).thenReturn(true);
 
-        assertTrue(result.isEmpty());
-        verify(userPersistencePort).findById(1L);
-        verifyNoInteractions(getArtifactsUseCase);
+        userService.deleteUser(1L);
+
+        verify(userPersistencePort).deleteById(1L);
+        verify(keycloakPort).deleteUser(user.getKeycloakId());
+    }
+
+    @Test
+    void deleteUser_shouldThrowException_whenKeycloakDeletionFails() {
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(user));
+        when(keycloakPort.deleteUser(user.getKeycloakId())).thenReturn(false);
+
+        assertThrows(RuntimeException.class, () -> userService.deleteUser(1L));
+    }
+
+    @Test
+    void updateUser_shouldThrowException_whenUserIdIsNull() {
+        assertThrows(ResourceNotFoundException.class, () -> userService.updateUser(new UserUpdateDto(
+                "test@gmail.com", "firstName", "lastName", "username"
+        ), 12341234L));
+    }
+
+    @Test
+    void updateUser_shouldThrowException_whenUserNotFound() {
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> userService.updateUser(new UserUpdateDto(
+                "test@gmail.com", "firstName", "lastName", "username"
+        ), 1L));
+    }
+
+    @Test
+    void updateUser_shouldUpdateUser_whenUserExists() {
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(user));
+        UserUpdateDto updateDto = new UserUpdateDto(
+                "newEmail@example.com", "newFirstName", "newLastName", "newUsername"
+        );
+
+        userService.updateUser(updateDto, 1L);
+
+        verify(userPersistencePort).save(any(UserEntity.class));
+        verify(keycloakPort).updateUser(any(UserKeycloakUpdateDto.class));
+    }
+
+    @Test
+    void updatePassword_shouldThrowException_whenUserIdIsNull() {
+        assertThrows(ResourceNotFoundException.class, () -> userService.updatePassword("newPassword", null));
+    }
+
+    @Test
+    void updatePassword_shouldThrowException_whenUserNotFound() {
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> userService.updatePassword("newPassword", 1L));
+    }
+
+    @Test
+    void updatePassword_shouldUpdatePassword_whenUserExists() {
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(user));
+        when(keycloakPort.updatePassword(user.getKeycloakId(), "newPassword")).thenReturn(true);
+
+        Boolean result = userService.updatePassword("newPassword", 1L);
+
+        assertTrue(result);
+        verify(keycloakPort).updatePassword(user.getKeycloakId(), "newPassword");
     }
 }

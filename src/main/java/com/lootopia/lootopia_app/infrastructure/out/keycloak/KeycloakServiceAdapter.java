@@ -93,10 +93,12 @@ public class KeycloakServiceAdapter implements KeycloakPort {
     }
 
 
-
     @Override
     public boolean updatePassword(String userId, String newPassword) {
         try {
+
+            //log le password
+            log.info("Updating password : {}", newPassword);
             Keycloak keycloak = getKeycloakInstance();
 
             CredentialRepresentation credential = new CredentialRepresentation();
@@ -104,9 +106,18 @@ public class KeycloakServiceAdapter implements KeycloakPort {
             credential.setValue(newPassword);
             credential.setTemporary(false);
 
+            // Réinitialiser le mot de passe
             keycloak.realm(realm).users().get(userId).resetPassword(credential);
+
+            UserRepresentation updatedUser = keycloak.realm(realm).users().get(userId).toRepresentation();
+            log.info("Updated user info for user {}: Username: {}, Email: {}",
+                    userId, updatedUser.getUsername(), updatedUser.getEmail());
+
+            keycloak.realm(realm).users().get(userId).logout();
+
             return true;
         } catch (Exception e) {
+            log.error("Error updating password for user with ID: {}", userId, e);
             return false;
         }
     }

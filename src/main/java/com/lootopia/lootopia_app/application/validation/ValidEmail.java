@@ -14,4 +14,5 @@ public @interface ValidEmail {
     String message() default "Invalid email format";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
+    boolean nullable() default false;
 }
