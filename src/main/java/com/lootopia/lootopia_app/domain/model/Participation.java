@@ -1,5 +1,6 @@
 package com.lootopia.lootopia_app.domain.model;
 
+import com.lootopia.lootopia_app.domain.ParticipationStatut;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +14,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 public class Participation {
     private Long id;
-    private String statut;
+    private ParticipationStatut statut;
     private Timestamp dateInscription;
     private Integer organizerId;
     private Integer userId;

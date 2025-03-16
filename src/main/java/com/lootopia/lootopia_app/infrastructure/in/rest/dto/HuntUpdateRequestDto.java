@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class HuntUpdateRequest {
+public class HuntUpdateRequestDto {
     private String title;
     private String description;
     private String mode;

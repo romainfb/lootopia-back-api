@@ -5,7 +5,7 @@ import com.lootopia.lootopia_app.application.port.in.DeleteHuntUseCase;
 import com.lootopia.lootopia_app.application.port.in.UpdateHuntUseCase;
 import com.lootopia.lootopia_app.domain.model.Hunt;
 import com.lootopia.lootopia_app.infrastructure.in.rest.HuntAdminController;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntUpdateRequest;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntUpdateRequestDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.mapper.HuntMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ class HuntAdminControllerTest {
     @Test
     void updateHunt_ShouldReturnUpdatedHunt() throws Exception {
         Long id = 1L;
-        HuntUpdateRequest updateRequest = HuntUpdateRequest.builder()
+        HuntUpdateRequestDto updateRequest = HuntUpdateRequestDto.builder()
                 .title("Titre mis à jour")
                 .build();
         Hunt huntFromMapper = Hunt.builder()

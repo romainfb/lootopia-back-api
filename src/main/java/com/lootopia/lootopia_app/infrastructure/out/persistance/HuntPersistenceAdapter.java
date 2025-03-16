@@ -4,6 +4,7 @@ import com.lootopia.lootopia_app.application.port.out.HuntPersistencePort;
 import com.lootopia.lootopia_app.domain.model.Hunt;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.HuntEntity;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.mapper.HuntPersistenceMapper;
+import com.lootopia.lootopia_app.infrastructure.out.persistance.repository.HuntRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

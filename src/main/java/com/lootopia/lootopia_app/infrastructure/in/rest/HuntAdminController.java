@@ -4,10 +4,10 @@ package com.lootopia.lootopia_app.infrastructure.in.rest;
 import com.lootopia.lootopia_app.application.port.in.CreateHuntUseCase;
 import com.lootopia.lootopia_app.application.port.in.DeleteHuntUseCase;
 import com.lootopia.lootopia_app.application.port.in.UpdateHuntUseCase;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntUpdateRequest;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntUpdateRequestDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.mapper.HuntMapper;
 import com.lootopia.lootopia_app.domain.model.Hunt;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntRequest;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.HuntRequestDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -42,7 +42,7 @@ public class HuntAdminController {
     })
     @PostMapping
     //TODO : Add admin role verification
-    public Hunt createHunt(@RequestBody @Valid HuntRequest huntRequest) {
+    public Hunt createHunt(@RequestBody @Valid HuntRequestDto huntRequest) {
         log.info("Creating new hunt : {}", huntRequest);
         return createHuntUseCase.createHunt(huntMapper.huntRequestToHunt(huntRequest));
     }
@@ -62,7 +62,7 @@ public class HuntAdminController {
 
     @PatchMapping("/{id}/update")
     public Hunt updateHunt(@PathVariable Long id,
-                           @RequestBody @Valid HuntUpdateRequest updateRequest) {
+                           @RequestBody @Valid HuntUpdateRequestDto updateRequest) {
         log.info("Updating hunt : {}", updateRequest);
         return updateHuntUseCase.updateHunt(id,huntMapper.huntUpdateRequestToHunt(updateRequest));
     }

@@ -9,7 +9,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class HuntRequest {
+public class HuntRequestDto {
     @NotNull(message = "Le titre est obligatoire")
     private String title;
     private String description;
