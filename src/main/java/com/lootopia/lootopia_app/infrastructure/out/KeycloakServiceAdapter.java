@@ -4,6 +4,7 @@ import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
 import jakarta.ws.rs.NotFoundException;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
+import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.slf4j.Logger;
@@ -23,12 +24,6 @@ public class KeycloakServiceAdapter implements KeycloakPort {
     @Value("${keycloak_realm}")
     private String realm;
 
-    @Value("${keycloak_client_id}")
-    private String clientId;
-
-    @Value("${keycloak_secret}")
-    private String clientSecret;
-
     @Value("${keycloak_admin_username}")
     private String adminUsername;
 
@@ -38,7 +33,7 @@ public class KeycloakServiceAdapter implements KeycloakPort {
     private Keycloak getKeycloakInstance() {
         return KeycloakBuilder.builder()
                 .serverUrl(authServerUrl)
-                .realm("master")
+                .realm(realm)
                 .clientId("admin-cli")
                 .username(adminUsername)
                 .password(adminPassword)
@@ -58,10 +53,21 @@ public class KeycloakServiceAdapter implements KeycloakPort {
 
     @Override
     public boolean deleteUser(String userId) {
+        log.info("Deleting user with ID: " + userId);
+        log.info("realm: " + realm);
         try {
             Keycloak keycloak = getKeycloakInstance();
-            keycloak.realm(realm).users().get(userId).remove();
+            // Essayer de récupérer l'utilisateur pour vérifier s'il existe
+            UserResource userResource = keycloak.realm(realm).users().get(userId);
+
+            // Si l'utilisateur est récupéré, on le supprime
+            userResource.remove();
+            log.info("User with ID " + userId + " deleted successfully.");
             return true;
+        } catch (NotFoundException e) {
+            // Si l'utilisateur n'est pas trouvé, Keycloak lance une exception NotFoundException
+            log.warn("User with ID " + userId + " does not exist.");
+            return false;
         } catch (Exception e) {
             log.error("Error deleting user with ID: " + userId, e);
             return false;
@@ -81,7 +87,6 @@ public class KeycloakServiceAdapter implements KeycloakPort {
 
             keycloak.realm(realm).users().get(userId).update(user);
 
-            // Récupérer et retourner l'utilisateur mis à jour
             return keycloak.realm(realm).users().get(userId).toRepresentation();
         } catch (NotFoundException e) {
             throw new RuntimeException("Utilisateur non trouvé avec l'ID: " + userId, e);
@@ -107,22 +112,4 @@ public class KeycloakServiceAdapter implements KeycloakPort {
         }
     }
 
-    @Override
-    public UserRepresentation setUserEnabled(String userId, boolean enabled) {
-        try {
-            Keycloak keycloak = getKeycloakInstance();
-            UserRepresentation user = keycloak.realm(realm).users().get(userId).toRepresentation();
-
-            user.setEnabled(enabled);
-
-            keycloak.realm(realm).users().get(userId).update(user);
-
-            // Récupérer et retourner l'utilisateur mis à jour
-            return keycloak.realm(realm).users().get(userId).toRepresentation();
-        } catch (NotFoundException e) {
-            throw new RuntimeException("Utilisateur non trouvé avec l'ID: " + userId, e);
-        } catch (Exception e) {
-            throw new RuntimeException("Erreur lors de la modification du statut de l'utilisateur: " + e.getMessage(), e);
-        }
-    }
 }
