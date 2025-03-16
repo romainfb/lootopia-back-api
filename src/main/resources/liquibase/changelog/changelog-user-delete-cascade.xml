@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="11" author="Thibault Garrigues">
+        <!-- Suppression de la contrainte actuelle -->
+        <dropForeignKeyConstraint baseTableName="participation" constraintName="fk_participation_utilisateur"/>
+
+        <!-- Recréation avec ON DELETE CASCADE -->
+        <addForeignKeyConstraint
+                constraintName="fk_participation_utilisateur"
+                baseTableName="participation"
+                baseColumnNames="utilisateur_id"
+                referencedTableName="utilisateur"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- Ajout de contraintes similaires pour les autres tables référençant utilisateur -->
+    <changeSet id="12" author="Thibault Garrigues">
+        <!-- Partenaire -->
+        <dropForeignKeyConstraint baseTableName="partenaire" constraintName="fk_partenaire_organisateur"/>
+        <addForeignKeyConstraint
+                constraintName="fk_partenaire_organisateur"
+                baseTableName="partenaire"
+                baseColumnNames="organisateur_id"
+                referencedTableName="utilisateur"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <!-- Chasse -->
+        <dropForeignKeyConstraint baseTableName="chasse" constraintName="fk_chasse_organisateur"/>
+        <addForeignKeyConstraint
+                constraintName="fk_chasse_organisateur"
+                baseTableName="chasse"
+                baseColumnNames="organisateur_id"
+                referencedTableName="utilisateur"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <!-- Participation - organisateur -->
+        <dropForeignKeyConstraint baseTableName="participation" constraintName="fk_participation_organisateur"/>
+        <addForeignKeyConstraint
+                constraintName="fk_participation_organisateur"
+                baseTableName="participation"
+                baseColumnNames="organisateur_id"
+                referencedTableName="utilisateur"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <!-- Recompense -->
+        <dropForeignKeyConstraint baseTableName="recompense" constraintName="fk_recompense_utilisateur"/>
+        <addForeignKeyConstraint
+                constraintName="fk_recompense_utilisateur"
+                baseTableName="recompense"
+                baseColumnNames="utilisateur_id"
+                referencedTableName="utilisateur"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+
+        <!-- Transaction -->
+        <dropForeignKeyConstraint baseTableName="transaction" constraintName="fk_transaction_utilisateur"/>
+        <addForeignKeyConstraint
+                constraintName="fk_transaction_utilisateur"
+                baseTableName="transaction"
+                baseColumnNames="utilisateur_id"
+                referencedTableName="utilisateur"
+                referencedColumnNames="id"
+                onDelete="CASCADE"/>
+    </changeSet>
+</databaseChangeLog>

@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface UserPersistencePort {
     Optional<User> findById(Long id);
     User save(UserEntity user);
+    void deleteById(Long id);
 }
