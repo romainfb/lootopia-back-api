@@ -19,16 +19,16 @@ import java.util.Optional;
 public class KeycloakServiceAdapter implements KeycloakPort {
 
     private static final Logger log = LoggerFactory.getLogger(KeycloakServiceAdapter.class);
-    @Value("${keycloak_server_url}")
+    @Value("${KEYCLOAK_SERVER_URL}")
     private String authServerUrl;
 
-    @Value("${keycloak_realm}")
+    @Value("${KEYCLOAK_REALM}")
     private String realm;
 
-    @Value("${keycloak_admin_username}")
+    @Value("${KEYCLOAK_ADMIN_USERNAME}")
     private String adminUsername;
 
-    @Value("${keycloak_admin_password}")
+    @Value("${KEYCLOAK_ADMIN_PASSWORD}")
 
     private String adminPassword;
     private Keycloak getKeycloakInstance() {
@@ -96,7 +96,6 @@ public class KeycloakServiceAdapter implements KeycloakPort {
     @Override
     public boolean updatePassword(String userId, String newPassword) {
         try {
-
             //log le password
             log.info("Updating password : {}", newPassword);
             Keycloak keycloak = getKeycloakInstance();
@@ -106,7 +105,6 @@ public class KeycloakServiceAdapter implements KeycloakPort {
             credential.setValue(newPassword);
             credential.setTemporary(false);
 
-            // Réinitialiser le mot de passe
             keycloak.realm(realm).users().get(userId).resetPassword(credential);
 
             UserRepresentation updatedUser = keycloak.realm(realm).users().get(userId).toRepresentation();
