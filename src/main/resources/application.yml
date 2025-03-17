@@ -1,20 +1,43 @@
+logging:
+  level:
+    org.springframework.web: ERROR
+    org.springframework.jdbc.core: ERROR
+    org.springframework.security.oauth2: INFO
+    org.springframework.jdbc.datasource: ERROR
+    org.keycloak.client: INFO
+
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_REALM_URI}
+      client:
+        registration:
+          oauth2-client:
+            client-id: ${KEYCLOAK_CLIENT_ID}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            redirect-uri: ${KEYCLOAK_REDIRECT_URI}
+            scope: openid, profile, email
+            provider: keycloak
   application:
     name: lootopia-app
-  logging:
-    level:
-      org.springframework.web: DEBUG
-      org.springframework.jdbc.core: DEBUG
-      org.springframework.jdbc.datasource: DEBUG
+
   liquibase:
     change-log: classpath:liquibase/db.changelog-master.xml
+
   datasource:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
+# Keycloak configuration
 KEYCLOAK_SERVER_URL: ${KEYCLOAK_SERVER_URL}
 KEYCLOAK_REALM: ${KEYCLOAK_REALM}
 KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME}
 KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-
+KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+KEYCLOAK_REDIRECT_URI: ${KEYCLOAK_REDIRECT_URI}

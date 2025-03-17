@@ -19,6 +19,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,13 +45,14 @@ public class UserController {
     private final UpdateUserUseCase updateUserUseCase;
     private final DeleteUserUseCase deleteUserUseCase;
 
-    @Operation(summary = "Get user by ID", description = "Endpoint to Get user by ID")
+    @Operation(summary = "Get user", description = "Endpoint to Get user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(mediaType = "application/json"))
     })
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/detail/{id_user}")
     public ResponseEntity<User> getUserById(@PathVariable @Valid Long id_user) {
         log.info("Retrieving user by id : {}", id_user);
@@ -57,7 +61,7 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Get user inventory", description = "Endpoint to Get user inventory by id")
+    @Operation(summary = "Get user inventory", description = "Endpoint to Get user inventory")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = @Content(mediaType = "application/json")),
@@ -70,10 +74,12 @@ public class UserController {
         return getUserUseCase.getUserInventory(id_user);
     }
 
-    @Operation(summary = "Update a user by id", description = "Endpoint to update an existing user by id.")
+    @Operation(summary = "Update a user", description = "Endpoint to update an existing user .")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User updated successfully",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Hunt.class))),
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "User updated successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserUpdatedDto.class))),
             @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "User not found",
@@ -81,17 +87,16 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(mediaType = "application/json"))
     })
-    @PatchMapping("/{id}/update")
-    public UserUpdatedDto updateUser(@PathVariable Long id,
-                                     @RequestBody @Valid UserToUpdateDto userDto) {
-        log.info("Updating user : {}", userDto);
-        return updateUserUseCase.updateUser(userDto, id);
+    @PatchMapping("/update")
+    @PreAuthorize("isAuthenticated()")
+    public UserUpdatedDto updateUser(@RequestBody @Valid UserToUpdateDto userDto , @AuthenticationPrincipal Jwt jwt) {
+        return updateUserUseCase.updateUser(userDto, jwt);
     }
 
     @Operation(summary = "Update user password", description = "Endpoint to update user password in Keycloak.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "update successful",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Hunt.class))),
+                    content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "User not found",
@@ -99,10 +104,10 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(mediaType = "application/json"))
     })
-    @PutMapping("/{id}/key/update")
-    public ResponseEntity<Void> updateUserPassword(@PathVariable Long id,
-                                                   @RequestBody @Valid UpdatePasswordRequestDto dto) {
-        boolean isUpdated = updateUserUseCase.updatePassword(dto.getPassword(), id);
+    @PutMapping("/key/update")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> updateUserPassword(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid UpdatePasswordRequestDto dto) {
+        boolean isUpdated = updateUserUseCase.updatePassword(dto.getPassword(), jwt);
         if (isUpdated) {
             return ResponseEntity.ok().build();
         } else {
@@ -110,7 +115,7 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "Delete user by ID", description = "Endpoint to Delete user by ID")
+    @Operation(summary = "Delete user", description = "Endpoint to Delete user ")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
@@ -132,10 +137,10 @@ public class UserController {
                     content = @Content(mediaType = "application/json")
             )
     })
-    @DeleteMapping("/{id_user}")
-    public ResponseEntity<Void> deleteUserById(@PathVariable @Valid Long id_user) {
-        log.info("Deleting user by id : {}", id_user);
-        deleteUserUseCase.deleteUser(id_user);
+    @DeleteMapping("/delete-account")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> deleteUserById(@AuthenticationPrincipal Jwt jwt) {
+        deleteUserUseCase.deleteUser(jwt);
         return ResponseEntity.noContent().build();
     }
 }

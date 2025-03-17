@@ -6,7 +6,8 @@ import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntit
 import java.util.Optional;
 
 public interface UserPersistencePort {
-    Optional<User> findById(Long id);
+    Optional<UserEntity> findById(Long id);
     User save(UserEntity user);
     void deleteById(Long id);
+    Optional<UserEntity> findByKeycloakId(String keycloakId);
 }

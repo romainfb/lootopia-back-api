@@ -6,11 +6,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener;
 import io.github.cdimascio.dotenv.Dotenv;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 
 import java.util.stream.Collectors;
 
 @SpringBootApplication
+@EnableMethodSecurity
 public class LootopiaAppApplication {
 
 	private static final Logger logger = LoggerFactory.getLogger(LootopiaAppApplication.class);

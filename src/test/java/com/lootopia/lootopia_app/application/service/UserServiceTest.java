@@ -19,8 +19,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.oauth2.jwt.Jwt;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,9 +46,10 @@ class UserServiceTest {
 
     private User user;
     public UserEntity userEntity;
+
     @BeforeEach
     void setUp() {
-        user = new User(1L, "testUser", "fqsdfqsdfq1234", AccountType.USER, 0);
+        user = new User(1L, "testUser", AccountType.USER, 0);
         userEntity = UserEntity.builder()
                 .id(1L)
                 .keycloakId("keycloak-123")
@@ -54,6 +58,27 @@ class UserServiceTest {
                 .balance(0)
                 .build();
     }
+
+    Jwt fakeJwt = new Jwt(
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9." +
+                    "eyJzdWIiOiJrZXljbG9hay0xMjMiLCJlbWFpbCI6InRlc3RVc2VyQGV4YW1wbGUuY29tIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidGVzdFVzZXIiLCJnaXZlbl9uYW1lIjoidGVzdCIsImZhbWlseV9uYW1lIjoidXNlciIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoidGVzdCB1c2VyIiwicGljdHVyZSI6InRlc3QucG5nIiwiZXhwIjoxNzEwNjQ2MDAwLCJpYXQiOjE3MTA2NDI0MDB9." +
+                    "dGVzdC1zaWduYXR1cmU",
+            Instant.ofEpochSecond(1710642400), // iat (timestamp en dur)
+            Instant.ofEpochSecond(1710646000), // exp (timestamp en dur)
+            Map.of("alg", "HS256", "typ", "JWT"),
+            Map.of(
+                    "sub", "keycloak-123",
+                    "email", "testUser@example.com",
+                    "preferred_username", "testUser",
+                    "given_name", "test",
+                    "family_name", "user",
+                    "email_verified", true,
+                    "name", "test user",
+                    "picture", "test.png",
+                    "iat", Instant.ofEpochSecond(1710642400),
+                    "exp", Instant.ofEpochSecond(1710646000)
+            )
+    );
 
     @Test
     void createUser_shouldThrowException_whenUserDtoIsNull() {
@@ -85,7 +110,7 @@ class UserServiceTest {
 
     @Test
     void getUserById_shouldReturnUser_whenUserExists() {
-        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(user));
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(userEntity));
 
         Optional<User> result = userService.getUserById(1L);
 
@@ -95,13 +120,13 @@ class UserServiceTest {
     }
 
     @Test
-    void getUserById_shouldReturnEmpty_whenUserDoesNotExist() {
-        when(userPersistencePort.findById(1L)).thenReturn(Optional.empty());
+    void getUserById_ShouldThrowResourceNotFoundException_WhenUserDoesNotExist() {
+        Long userId = 999L;
 
-        Optional<User> result = userService.getUserById(1L);
+        when(userPersistencePort.findById(userId)).thenReturn(Optional.empty());
 
-        assertTrue(result.isEmpty());
-        verify(userPersistencePort).findById(1L);
+        assertThrows(ResourceNotFoundException.class, () -> userService.getUserById(userId));
+        verify(userPersistencePort, times(1)).findById(userId);
     }
 
     @Test
@@ -112,7 +137,7 @@ class UserServiceTest {
     @Test
     void getUserInventory_shouldReturnUserWithArtifacts() {
         List<Artifact> artifacts = List.of(new Artifact(1L, "testArtifact", "100", "testArtifact.png", "1L", 1L));
-        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(user));
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(userEntity));
         when(getArtifactsUseCase.getArtifactsByUserId(1L)).thenReturn(artifacts);
 
         Optional<UserInventory> result = userService.getUserInventory(1L);
@@ -131,33 +156,33 @@ class UserServiceTest {
     @Test
     void deleteUser_shouldThrowException_whenUserNotFound() {
         when(userPersistencePort.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(InvalidParameterException.class, () -> userService.deleteUser(1L));
+        assertThrows(InvalidParameterException.class, () -> userService.deleteUser(fakeJwt));
     }
 
     @Test
     void deleteUser_shouldDeleteUser_whenUserExists() {
-        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(user));
-        when(keycloakPort.deleteUser(user.getKeycloakId())).thenReturn(true);
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(userEntity));
+        when(keycloakPort.deleteUser(userEntity.getKeycloakId())).thenReturn(true);
 
-        userService.deleteUser(1L);
+        userService.deleteUser(fakeJwt);
 
         verify(userPersistencePort).deleteById(1L);
-        verify(keycloakPort).deleteUser(user.getKeycloakId());
+        verify(keycloakPort).deleteUser(userEntity.getKeycloakId());
     }
 
     @Test
     void deleteUser_shouldThrowException_whenKeycloakDeletionFails() {
-        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(user));
-        when(keycloakPort.deleteUser(user.getKeycloakId())).thenReturn(false);
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(userEntity));
+        when(keycloakPort.deleteUser(userEntity.getKeycloakId())).thenReturn(false);
 
-        assertThrows(RuntimeException.class, () -> userService.deleteUser(1L));
+        assertThrows(RuntimeException.class, () -> userService.deleteUser(fakeJwt));
     }
 
     @Test
     void updateUser_shouldThrowException_whenUserIdIsNull() {
         assertThrows(ResourceNotFoundException.class, () -> userService.updateUser(new UserToUpdateDto(
                 "test@gmail.com", "firstName", "lastName", "username"
-        ), 12341234L));
+        ), fakeJwt));
     }
 
     @Test
@@ -165,7 +190,7 @@ class UserServiceTest {
         when(userPersistencePort.findById(1L)).thenReturn(Optional.empty());
         assertThrows(ResourceNotFoundException.class, () -> userService.updateUser(new UserToUpdateDto(
                 "test@gmail.com", "firstName", "lastName", "username"
-        ), 1L));
+        ), fakeJwt));
     }
 
     @Test
@@ -177,32 +202,33 @@ class UserServiceTest {
         );
 
         assertThrows(ResourceNotFoundException.class, () -> {
-            userService.updateUser(updateDto, 1L);
+            userService.updateUser(updateDto, fakeJwt);
         });
 
         verify(userPersistencePort, times(1)).findById(1L);
         verify(userPersistencePort, never()).save(any(UserEntity.class));
         verify(keycloakPort, never()).updateUser(any(UserUpdatedDto.class));
     }
+
     @Test
     void updatePassword_shouldThrowException_whenUserIdIsNull() {
-        assertThrows(ResourceNotFoundException.class, () -> userService.updatePassword("newPassword", null));
+        assertThrows(ResourceNotFoundException.class, () -> userService.updatePassword("newPassword", fakeJwt));
     }
 
     @Test
     void updatePassword_shouldThrowException_whenUserNotFound() {
         when(userPersistencePort.findById(1L)).thenReturn(Optional.empty());
-        assertThrows(ResourceNotFoundException.class, () -> userService.updatePassword("newPassword", 1L));
+        assertThrows(ResourceNotFoundException.class, () -> userService.updatePassword("newPassword", fakeJwt));
     }
 
     @Test
     void updatePassword_shouldUpdatePassword_whenUserExists() {
-        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(user));
-        when(keycloakPort.updatePassword(user.getKeycloakId(), "newPassword")).thenReturn(true);
+        when(userPersistencePort.findById(1L)).thenReturn(Optional.of(userEntity));
+        when(keycloakPort.updatePassword(userEntity.getKeycloakId(), "newPassword")).thenReturn(true);
 
-        Boolean result = userService.updatePassword("newPassword", 1L);
+        Boolean result = userService.updatePassword("newPassword", fakeJwt);
 
         assertTrue(result);
-        verify(keycloakPort).updatePassword(user.getKeycloakId(), "newPassword");
+        verify(keycloakPort).updatePassword(userEntity.getKeycloakId(), "newPassword");
     }
 }
