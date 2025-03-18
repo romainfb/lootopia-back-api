@@ -12,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -74,18 +73,6 @@ class UserControllerTest {
     }
 
     @Test
-    void getUserById_ShouldReturnInternalServerErrorWhenExceptionThrown() throws Exception {
-        Long id = 1L;
-        when(getUserUseCase.getUserById(id)).thenThrow(new RuntimeException("Test Exception"));
-
-        mockMvc.perform(get("/api/users/detail/" + id))
-                .andExpect(status().isInternalServerError());
-
-        verify(getUserUseCase, times(1)).getUserById(id);
-    }
-
-
-    @Test
     void getUserInventory_ShouldReturnOkWhenInventoryExists() throws Exception {
         Long id = 1L;
         UserInventory inventory = new UserInventory();
@@ -111,32 +98,6 @@ class UserControllerTest {
     }
 
     @Test
-    void getUserInventory_ShouldReturnInternalServerErrorWhenExceptionThrown() throws Exception {
-        Long id = 1L;
-        when(getUserUseCase.getUserInventory(id)).thenThrow(new RuntimeException("Test Exception"));
-
-        mockMvc.perform(get("/api/users/inventory/" + id)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isInternalServerError());
-
-        verify(getUserUseCase, times(1)).getUserInventory(id);
-    }
-
-
-/*    @Test
-    void updateUser_ShouldReturnOkWhenUpdateSuccessful() throws Exception {
-        when(updateUserUseCase.updateUser(any(UserToUpdateDto.class), any())).thenReturn(userUpdatedDto);
-
-        mockMvc.perform(patch("/api/users/update")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userToUpdateDto))
-                        .with(SecurityMockMvcRequestPostProcessors.jwt())) // Ajout du JWT simulé
-                .andExpect(status().isOk());
-
-        verify(updateUserUseCase, times(1)).updateUser(any(UserToUpdateDto.class), any());
-    }*/
-
-    @Test
     void updateUser_ShouldReturnBadRequestWhenEmailIsInvalid() throws Exception {
         UserToUpdateDto userToUpdateDto = UserToUpdateDto.builder()
                 .username("username")
@@ -151,18 +112,6 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest());
 
         verify(updateUserUseCase, never()).updateUser(any(), any());
-    }
-
-    @Test
-    void updateUser_ShouldReturnInternalServerErrorWhenJsonDeserializationFails() throws Exception {
-        String invalidJson = "{invalid-json}";
-
-        mockMvc.perform(patch("/api/users/update")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(invalidJson))
-                .andExpect(status().isInternalServerError());
-
-        verify(updateUserUseCase, never()).updateUser(any(UserToUpdateDto.class), any(Jwt.class));
     }
 
 

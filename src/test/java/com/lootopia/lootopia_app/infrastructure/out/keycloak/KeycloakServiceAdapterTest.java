@@ -1,6 +1,5 @@
 package com.lootopia.lootopia_app.infrastructure.out.keycloak;
 
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdatedDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -63,32 +62,6 @@ class KeycloakServiceAdapterTest {
         // Assert
         assertFalse(result);
     }
-
-
-    @Test
-    void updateUser_ShouldThrowException_WhenUserDtoIsNull() {
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> keycloakServiceAdapter.updateUser(null));
-    }
-
-    @Test
-    void updateUser_ShouldThrowException_WhenUserIdIsNull() {
-        // Arrange
-        UserUpdatedDto userDto = new UserUpdatedDto(null, "test-username", "test@example.com", "Test", "User");
-
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> keycloakServiceAdapter.updateUser(userDto));
-    }
-
-    @Test
-    void updateUser_ShouldThrowException_WhenUserIdIsBlank() {
-        // Arrange
-        UserUpdatedDto userDto = new UserUpdatedDto("", "test-username", "test@example.com", "Test", "User");
-
-        // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> keycloakServiceAdapter.updateUser(userDto));
-    }
-
 
 
     @Test

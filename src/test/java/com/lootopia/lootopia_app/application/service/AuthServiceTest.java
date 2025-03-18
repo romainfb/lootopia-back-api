@@ -72,7 +72,7 @@ class AuthServiceTest {
         userKeycloak.setUsername("john.doe");
         userKeycloak.setEmailVerified(true);
 
-        doReturn(userId).when(authService).jwtServiceUseCase.decodeJwt(accessToken);
+        when(jwtServiceUseCase.getUserIdFromToken(accessToken)).thenReturn(userId);
         when(keycloakPort.getUserById(userId)).thenReturn(Optional.of(userKeycloak));
         when(getUserUseCase.getUserByKeycloakId(userId)).thenReturn(Optional.of(userFromDb));
 
@@ -92,7 +92,7 @@ class AuthServiceTest {
         String accessToken = "valid_token";
         String userId = "user123";
 
-        doReturn(userId).when(authService).jwtServiceUseCase.decodeJwt(accessToken);
+        when(jwtServiceUseCase.getUserIdFromToken(accessToken)).thenReturn(userId);
         when(keycloakPort.getUserById(userId)).thenReturn(Optional.empty());
         // Pas besoin de mocker getUserByKeycloakId car il ne sera jamais appelé
 
@@ -109,7 +109,7 @@ class AuthServiceTest {
         UserRepresentation userKeycloak = new UserRepresentation();
         userKeycloak.setId(userId);
 
-        doReturn(userId).when(authService).jwtServiceUseCase.decodeJwt(accessToken);
+        when(jwtServiceUseCase.getUserIdFromToken(accessToken)).thenReturn(userId);
         when(keycloakPort.getUserById(userId)).thenReturn(Optional.of(userKeycloak));
         when(getUserUseCase.getUserByKeycloakId(userId)).thenReturn(Optional.empty());
 
@@ -119,21 +119,7 @@ class AuthServiceTest {
         verify(getUserUseCase, times(1)).getUserByKeycloakId(userId);
     }
 
-    @Test
-    void decodeJwt_ShouldReturnUserId_WhenValidTokenIsProvided() {
-        String accessToken = "header.eyJzdWIiOiAidXNlcjEyMyJ9.signature";
-        String expectedUserId = "user123";
 
-        // Ne pas mocker la méthode que nous testons
-        String userId = authService.jwtServiceUseCase.decodeJwt(accessToken);
 
-        assertEquals(expectedUserId, userId);
-    }
 
-    @Test
-    void decodeJwt_ShouldThrowException_WhenInvalidTokenFormat() {
-        String accessToken = "invalid_token";
-
-        assertThrows(RuntimeException.class, () -> authService.jwtServiceUseCase.decodeJwt(accessToken));
-    }
 }

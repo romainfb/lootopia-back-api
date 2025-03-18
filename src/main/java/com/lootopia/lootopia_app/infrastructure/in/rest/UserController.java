@@ -25,7 +25,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -47,13 +46,6 @@ public class UserController {
     private final DeleteUserUseCase deleteUserUseCase;
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        log.error("Internal server error: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
-    }
 
     @Operation(summary = "Get user", description = "Endpoint to Get user")
     @ApiResponses(value = {
@@ -78,6 +70,7 @@ public class UserController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(mediaType = "application/json"))
     })
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/inventory/{id_user}")
     public ResponseEntity<UserInventory> getUserInventory(@PathVariable @Valid Long id_user) {
         log.info("Retrieving user inventory with id : {}", id_user);
