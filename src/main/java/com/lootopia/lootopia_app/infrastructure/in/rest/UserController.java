@@ -3,7 +3,6 @@ package com.lootopia.lootopia_app.infrastructure.in.rest;
 import com.lootopia.lootopia_app.application.port.in.DeleteUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.UpdateUserUseCase;
-import com.lootopia.lootopia_app.domain.model.Hunt;
 import com.lootopia.lootopia_app.domain.model.User;
 import com.lootopia.lootopia_app.domain.model.UserInventory;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UpdatePasswordRequestDto;
@@ -17,6 +16,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +25,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +34,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -44,6 +45,15 @@ public class UserController {
     private final GetUserUseCase getUserUseCase;
     private final UpdateUserUseCase updateUserUseCase;
     private final DeleteUserUseCase deleteUserUseCase;
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
+        log.error("Internal server error: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
+    }
 
     @Operation(summary = "Get user", description = "Endpoint to Get user")
     @ApiResponses(value = {
@@ -69,9 +79,11 @@ public class UserController {
                     content = @Content(mediaType = "application/json"))
     })
     @GetMapping("/inventory/{id_user}")
-    public Optional<UserInventory> getUserInventory(@PathVariable @Valid Long id_user) {
+    public ResponseEntity<UserInventory> getUserInventory(@PathVariable @Valid Long id_user) {
         log.info("Retrieving user inventory with id : {}", id_user);
-        return getUserUseCase.getUserInventory(id_user);
+        return getUserUseCase.getUserInventory(id_user)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "Update a user", description = "Endpoint to update an existing user .")
@@ -89,8 +101,15 @@ public class UserController {
     })
     @PatchMapping("/update")
     @PreAuthorize("isAuthenticated()")
-    public UserUpdatedDto updateUser(@RequestBody @Valid UserToUpdateDto userDto , @AuthenticationPrincipal Jwt jwt) {
-        return updateUserUseCase.updateUser(userDto, jwt);
+    public ResponseEntity<UserUpdatedDto> updateUser(@RequestBody @Valid UserToUpdateDto userDto, @AuthenticationPrincipal Jwt jwt) {
+        try {
+            UserUpdatedDto updatedUser = updateUserUseCase.updateUser(userDto, jwt);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @Operation(summary = "Update user password", description = "Endpoint to update user password in Keycloak.")
@@ -106,12 +125,26 @@ public class UserController {
     })
     @PutMapping("/key/update")
     @PreAuthorize("isAuthenticated()")
+
     public ResponseEntity<Void> updateUserPassword(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid UpdatePasswordRequestDto dto) {
-        boolean isUpdated = updateUserUseCase.updatePassword(dto.getPassword(), jwt);
-        if (isUpdated) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        logger.debug("updateUserPassword called with JWT: {}", jwt);
+        logger.debug("updateUserPassword called with DTO: {}", dto);
+
+        try {
+            boolean isUpdated = updateUserUseCase.updatePassword(dto.getPassword(), jwt);
+            logger.debug("updatePassword result: {}", isUpdated);
+
+            if (isUpdated) {
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+        } catch (IllegalArgumentException e) {
+            logger.error("IllegalArgumentException in updateUserPassword: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            logger.error("Exception in updateUserPassword: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
