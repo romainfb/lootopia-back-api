@@ -9,8 +9,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.AllArgsConstructor;
 import org.keycloak.representations.AccessTokenResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +30,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     private final AuthentificationUseCase authService;
 
 
@@ -59,12 +65,15 @@ public class AuthController {
                     content = @Content(mediaType = "application/json"))
     })
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authorizationHeader) {
-        if (authorizationHeader==null || !authorizationHeader.startsWith("Bearer ")) {
-            return ResponseEntity.badRequest().body("Missing or invalid Authorization header");
-        }
-        String accessToken = authorizationHeader.substring(7);
-        boolean success = authService.logout(accessToken);
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> logout(@AuthenticationPrincipal Jwt jwt,
+                                    @RequestHeader("Refresh-Token") String refreshToken) {
+        String accessToken = jwt.getTokenValue();
+        log.info("Logging out user with access token: {}", accessToken);
+        log.info("Using refresh token: {}", refreshToken);
+
+        boolean success = authService.logout(refreshToken);
+
         if (success) {
             return ResponseEntity.ok("User successfully logged out");
         } else {
@@ -82,15 +91,12 @@ public class AuthController {
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(mediaType = "application/json"))
     })
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
-    public ResponseEntity<UserInfoDto> getUserInfo(@RequestHeader(value = "Authorization",
-            required = false) String bearerToken) {
-        if (bearerToken==null || !bearerToken.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).build();
-        }
-        return ResponseEntity.ok(authService.getUserInfo(bearerToken));
+    public ResponseEntity<UserInfoDto> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
+        String userId = jwt.getSubject();
+        return ResponseEntity.ok(authService.getUserInfo(userId));
     }
-
 
 
     @Operation(summary = "Login user",

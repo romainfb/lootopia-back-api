@@ -96,7 +96,8 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserUpdatedDto> updateUser(@RequestBody @Valid UserToUpdateDto userDto, @AuthenticationPrincipal Jwt jwt) {
         try {
-            UserUpdatedDto updatedUser = updateUserUseCase.updateUser(userDto, jwt);
+            String userId = jwt.getSubject();
+            UserUpdatedDto updatedUser = updateUserUseCase.updateUser(userDto, userId);
             return ResponseEntity.ok(updatedUser);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(null);
@@ -120,11 +121,9 @@ public class UserController {
     @PreAuthorize("isAuthenticated()")
 
     public ResponseEntity<Void> updateUserPassword(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid UpdatePasswordRequestDto dto) {
-        logger.debug("updateUserPassword called with JWT: {}", jwt);
-        logger.debug("updateUserPassword called with DTO: {}", dto);
-
         try {
-            boolean isUpdated = updateUserUseCase.updatePassword(dto.getPassword(), jwt);
+            String userId = jwt.getSubject();
+            boolean isUpdated = updateUserUseCase.updatePassword(dto.getPassword(), userId);
             logger.debug("updatePassword result: {}", isUpdated);
 
             if (isUpdated) {
@@ -166,7 +165,8 @@ public class UserController {
     @DeleteMapping("/delete-account")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteUserById(@AuthenticationPrincipal Jwt jwt) {
-        deleteUserUseCase.deleteUser(jwt);
+        String userId = jwt.getSubject();
+        deleteUserUseCase.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }
 }

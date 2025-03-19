@@ -2,7 +2,6 @@ package com.lootopia.lootopia_app.application.service;
 
 import com.lootopia.lootopia_app.application.port.in.AuthentificationUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
-import com.lootopia.lootopia_app.application.port.in.JwtServiceUseCase;
 import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
 import com.lootopia.lootopia_app.domain.model.User;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserInfoDto;
@@ -22,7 +21,6 @@ public class AuthService implements AuthentificationUseCase {
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private final KeycloakPort keycloakPort;
     private final GetUserUseCase getUserUseCase;
-    final JwtServiceUseCase jwtServiceUseCase;
 
     @Override
     public AccessTokenResponse exchangeCodeForToken(String code) {
@@ -31,14 +29,12 @@ public class AuthService implements AuthentificationUseCase {
 
     @Override
     public Boolean logout(String accessToken) {
+        log.info("Logging out user with access token: {}", accessToken);
         return keycloakPort.logout(accessToken);
     }
 
-
-
     @Override
-    public UserInfoDto getUserInfo(String accessToken) {
-        String userId = jwtServiceUseCase.getUserIdFromToken(accessToken);
+    public UserInfoDto getUserInfo(String userId) {
         log.info("Getting user info for user with ID: {}", userId);
 
         UserRepresentation userKeycloak = keycloakPort.getUserById(userId)

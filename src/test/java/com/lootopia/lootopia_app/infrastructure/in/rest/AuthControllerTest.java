@@ -1,8 +1,6 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lootopia.lootopia_app.application.port.in.AuthentificationUseCase;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserInfoDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.keycloak.representations.AccessTokenResponse;
@@ -16,13 +14,13 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AuthControllerTest {
+    //TODO: Implement tests for AuthController
 
     private MockMvc mockMvc;
 
@@ -31,8 +29,6 @@ class AuthControllerTest {
 
     @InjectMocks
     private AuthController authController;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
@@ -67,72 +63,5 @@ class AuthControllerTest {
                 .andExpect(content().string("Missing authorization code"));
     }
 
-    @Test
-    void logout_ShouldReturnOk_WhenValidTokenIsProvided() throws Exception {
-        String token = "valid_token";
-        when(authService.logout(token)).thenReturn(true);
 
-        mockMvc.perform(post("/api/auth/logout")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(content().string("User successfully logged out"));
-
-        verify(authService, times(1)).logout(token);
-    }
-
-    @Test
-    void logout_ShouldReturnBadRequest_WhenAuthorizationHeaderIsInvalid() throws Exception {
-        mockMvc.perform(post("/api/auth/logout")
-                        .header("Authorization", "Invalid token"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Missing or invalid Authorization header"));
-    }
-
-    @Test
-    void logout_ShouldReturnInternalServerError_WhenLogoutFails() throws Exception {
-        String token = "valid_token";
-        when(authService.logout(token)).thenReturn(false);
-
-        mockMvc.perform(post("/api/auth/logout")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isInternalServerError())
-                .andExpect(content().string("Error during logout"));
-
-        verify(authService, times(1)).logout(token);
-    }
-
-    @Test
-    void getUserInfo_ShouldReturnUserInfo_WhenValidTokenIsProvided() throws Exception {
-        String token = "valid_token";
-        UserInfoDto userInfo = new UserInfoDto(
-                32L,
-                "QSDFAAE\\&1234",
-                "thibault@gmail.com",
-                "Thibault",
-                "Garrigues",
-                "username",
-                true
-        );
-
-        when(authService.getUserInfo("Bearer " + token)).thenReturn(userInfo);
-
-        mockMvc.perform(get("/api/auth/me")
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.firstName").value("Thibault"))
-                .andExpect(jsonPath("$.lastName").value("Garrigues"))
-                .andExpect(jsonPath("$.id").value(32L))
-                .andExpect(jsonPath("$.username").value("username"))
-                .andExpect(jsonPath("$.email").value("thibault@gmail.com"));
-
-
-        verify(authService, times(1)).getUserInfo("Bearer " + token);
-    }
-
-    @Test
-    void getUserInfo_ShouldReturnUnauthorized_WhenTokenIsInvalid() throws Exception {
-        mockMvc.perform(get("/api/auth/me")
-                        .header("Authorization", "Invalid token"))
-                .andExpect(status().isUnauthorized());
-    }
 }

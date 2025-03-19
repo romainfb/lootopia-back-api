@@ -5,7 +5,6 @@ import com.lootopia.lootopia_app.application.port.in.CreateUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.DeleteUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetArtifactsUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
-import com.lootopia.lootopia_app.application.port.in.JwtServiceUseCase;
 import com.lootopia.lootopia_app.application.port.in.UpdateUserUseCase;
 import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
 import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
@@ -23,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -35,7 +33,6 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final UserPersistencePort userPersistencePort;
     private final KeycloakPort keycloakPort;
-    private final JwtServiceUseCase jwtServiceUseCase;
     private final GetArtifactsUseCase getArtifactsUseCase;
 
     @Override
@@ -84,8 +81,7 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
     }
 
     @Override
-    public void deleteUser(Jwt jwt) {
-        String id_user = jwtServiceUseCase.getUserIdFromToken(jwt.getTokenValue());
+    public void deleteUser(String id_user) {
         UserEntity userEntity = userPersistencePort.findByKeycloakId(id_user)
                 .orElseThrow(() -> new InvalidParameterException("User with ID " + id_user + " not found"));
         String keycloakId = userEntity.getKeycloakId();
@@ -100,8 +96,7 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
     }
 
     @Override
-    public UserUpdatedDto updateUser(UserToUpdateDto user, Jwt jwt) {
-        String id_user = jwtServiceUseCase.getUserIdFromToken(jwt.getTokenValue());
+    public UserUpdatedDto updateUser(UserToUpdateDto user, String id_user) {
         log.info("Updating user with id : {}", id_user);
         log.info("User data : {}", user);
         UserEntity userEntity = userPersistencePort.findByKeycloakId(id_user)
@@ -132,8 +127,7 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
     }
 
     @Override
-    public Boolean updatePassword(String password, Jwt jwt) {
-        String userId = jwtServiceUseCase.getUserIdFromToken(jwt.getTokenValue());
+    public Boolean updatePassword(String password, String userId) {
         UserEntity userEntity = userPersistencePort.findByKeycloakId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         String keycloakId = userEntity.getKeycloakId();
