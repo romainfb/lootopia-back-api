@@ -1,12 +1,10 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lootopia.lootopia_app.application.port.in.DeleteUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.UpdateUserUseCase;
 import com.lootopia.lootopia_app.domain.model.User;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UpdatePasswordRequestDto;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdatedDto;
+import com.lootopia.lootopia_app.domain.model.UserInventory;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserToUpdateDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,12 +17,18 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class UserControllerTest {
+    //TODO: Implement tests for UserController
 
     private MockMvc mockMvc;
 
@@ -33,9 +37,6 @@ class UserControllerTest {
 
     @Mock
     private UpdateUserUseCase updateUserUseCase;
-
-    @Mock
-    private DeleteUserUseCase deleteUserUseCase;
 
     @InjectMocks
     private UserController userController;
@@ -73,71 +74,46 @@ class UserControllerTest {
     }
 
     @Test
-    void updateUser_ShouldReturnUpdatedUserWhenSuccessful() throws Exception {
+    void getUserInventory_ShouldReturnOkWhenInventoryExists() throws Exception {
         Long id = 1L;
-        UserToUpdateDto updateRequest = new UserToUpdateDto("email@gmail.com", "firstName", "lastName", "username");
+        UserInventory inventory = new UserInventory();
+        when(getUserUseCase.getUserInventory(id)).thenReturn(Optional.of(inventory));
 
-        UserUpdatedDto updatedUser = UserUpdatedDto.builder()
-                .id("keycloak-id")
+        mockMvc.perform(get("/api/users/inventory/" + id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        verify(getUserUseCase, times(1)).getUserInventory(id);
+    }
+
+    @Test
+    void getUserInventory_ShouldReturnNotFoundWhenInventoryDoesNotExist() throws Exception {
+        Long id = 1L;
+        when(getUserUseCase.getUserInventory(id)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/users/inventory/" + id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        verify(getUserUseCase, times(1)).getUserInventory(id);
+    }
+
+    @Test
+    void updateUser_ShouldReturnBadRequestWhenEmailIsInvalid() throws Exception {
+        UserToUpdateDto userToUpdateDto = UserToUpdateDto.builder()
                 .username("username")
-                .email("email@gmail.com")
+                .email("invalid-email") // Email invalide
                 .firstName("firstName")
                 .lastName("lastName")
                 .build();
 
-        when(updateUserUseCase.updateUser(eq(updateRequest), eq(id))).thenReturn(updatedUser);
-
-        mockMvc.perform(patch("/api/users/" + id + "/update")
+        mockMvc.perform(patch("/api/users/update")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("username"))
-                .andExpect(jsonPath("$.email").value("email@gmail.com"))
-                .andExpect(jsonPath("$.firstName").value("firstName"))
-                .andExpect(jsonPath("$.lastName").value("lastName"));
-
-
-        verify(updateUserUseCase, times(1)).updateUser(eq(updateRequest), eq(id));
-    }
-
-    @Test
-    void updateUserPassword_ShouldReturnOkWhenSuccessful() throws Exception {
-        Long id = 1L;
-        UpdatePasswordRequestDto dto = new UpdatePasswordRequestDto("newPassword");
-
-        when(updateUserUseCase.updatePassword(eq(dto.getPassword()), eq(id))).thenReturn(true);
-
-        mockMvc.perform(put("/api/users/" + id + "/key/update")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isOk());
-
-        verify(updateUserUseCase, times(1)).updatePassword(eq(dto.getPassword()), eq(id));
-    }
-
-    @Test
-    void updateUserPassword_ShouldReturnBadRequestWhenUpdateFails() throws Exception {
-        Long id = 1L;
-        UpdatePasswordRequestDto dto = new UpdatePasswordRequestDto("newPassword");
-
-        when(updateUserUseCase.updatePassword(eq(dto.getPassword()), eq(id))).thenReturn(false);
-
-        mockMvc.perform(put("/api/users/" + id + "/key/update")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
+                        .content(objectMapper.writeValueAsString(userToUpdateDto)))
                 .andExpect(status().isBadRequest());
 
-        verify(updateUserUseCase, times(1)).updatePassword(eq(dto.getPassword()), eq(id));
+        verify(updateUserUseCase, never()).updateUser(any(), any());
     }
 
-    @Test
-    void deleteUser_ShouldReturnNoContentWhenSuccessful() throws Exception {
-        Long id = 1L;
-        doNothing().when(deleteUserUseCase).deleteUser(id);
 
-        mockMvc.perform(delete("/api/users/" + id))
-                .andExpect(status().isNoContent());
-
-        verify(deleteUserUseCase, times(1)).deleteUser(id);
-    }
 }

@@ -20,9 +20,8 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     private final UserRepository userRepository;
 
     @Override
-    public Optional<User> findById(Long id) {
-        Optional<UserEntity> userEntity = userRepository.findById(id);
-        return userEntity.map(UserMapper::toDomain);
+    public Optional<UserEntity> findById(Long id) {
+        return userRepository.findById(id);
     }
 
     @Override
@@ -33,5 +32,10 @@ public class UserPersistenceAdapter implements UserPersistencePort {
     @Override
     public void deleteById(Long id) {
         userRepository.deleteById(id);
+    }
+
+    @Override
+    public Optional<UserEntity> findByKeycloakId(String keycloakId) {
+        return userRepository.findByKeycloakId(keycloakId);
     }
 }

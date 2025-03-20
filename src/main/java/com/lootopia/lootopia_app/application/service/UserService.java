@@ -20,6 +20,8 @@ import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntit
 import com.lootopia.lootopia_app.infrastructure.out.persistance.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -28,20 +30,31 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUserUseCase, UpdateUserUseCase {
 
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final UserPersistencePort userPersistencePort;
     private final KeycloakPort keycloakPort;
     private final GetArtifactsUseCase getArtifactsUseCase;
 
     @Override
     public Optional<User> getUserById(Long id_user) {
-        if (id_user==null) throw new InvalidParameterException("User ID cannot be null");
-        return userPersistencePort.findById(id_user);
+        if (id_user == null) throw new InvalidParameterException("User ID cannot be null");
+        return userPersistencePort.findById(id_user)
+            .map(UserMapper::toDomain)
+            .or(() -> {
+                throw new ResourceNotFoundException("User", "id", id_user);
+            });
+    }
+
+    @Override
+    public Optional<User> getUserByKeycloakId(String keycloakId) {
+        if (keycloakId==null) throw new InvalidParameterException("Keycloak ID cannot be null");
+        return userPersistencePort.findByKeycloakId(keycloakId).map(UserMapper::toDomain);
     }
 
     @Override
     public Optional<UserInventory> getUserInventory(Long id_user) {
         if (id_user==null) throw new InvalidParameterException("User ID cannot be null");
-        Optional<User> user = userPersistencePort.findById(id_user);
+        Optional<User> user = userPersistencePort.findById(id_user).map(UserMapper::toDomain);
         if (user.isPresent()) {
             UserInventory userInventory = UserInventory.builder()
                     .id(id_user)
@@ -68,29 +81,34 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
     }
 
     @Override
-    public void deleteUser(Long id_user) {
-        if (id_user == null) throw new InvalidParameterException("User ID cannot be null");
-        User user = userPersistencePort.findById(id_user)
+    public void deleteUser(String id_user) {
+        UserEntity userEntity = userPersistencePort.findByKeycloakId(id_user)
                 .orElseThrow(() -> new InvalidParameterException("User with ID " + id_user + " not found"));
-        if (keycloakPort.deleteUser(user.getKeycloakId())) {
-            userPersistencePort.deleteById(id_user);
+        String keycloakId = userEntity.getKeycloakId();
+        if (keycloakId == null || keycloakId.isEmpty()) {
+            throw new IllegalStateException("KeycloakId is missing for User with ID " + id_user);
+        }
+        if (keycloakPort.deleteUser(keycloakId)) {
+            userPersistencePort.deleteById(userEntity.getId());
         } else {
             throw new RuntimeException("Failed to delete user from Keycloak");
         }
     }
 
     @Override
-    public UserUpdatedDto updateUser(UserToUpdateDto user, Long id_user) {
-        User existingUser = userPersistencePort.findById(id_user)
+    public UserUpdatedDto updateUser(UserToUpdateDto user, String id_user) {
+        log.info("Updating user with id : {}", id_user);
+        log.info("User data : {}", user);
+        UserEntity userEntity = userPersistencePort.findByKeycloakId(id_user)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id_user));
 
         if (user.getUsername() != null) {
-            existingUser.setUsername(user.getUsername());
-            userPersistencePort.save(UserMapper.toEntity(existingUser));
+            userEntity.setUsername(user.getUsername());
+            userPersistencePort.save(userEntity);
         }
 
         UserUpdatedDto keycloakUpdateDto = UserUpdatedDto.builder()
-                .id(existingUser.getKeycloakId())
+                .id(userEntity.getKeycloakId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
@@ -109,10 +127,14 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
     }
 
     @Override
-    public Boolean updatePassword(String password, Long userId) {
-        User user = userPersistencePort.findById(userId)
+    public Boolean updatePassword(String password, String userId) {
+        UserEntity userEntity = userPersistencePort.findByKeycloakId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-        return keycloakPort.updatePassword(user.getKeycloakId(), password);
+        String keycloakId = userEntity.getKeycloakId();
+        if (keycloakId == null || keycloakId.isEmpty()) {
+            throw new IllegalStateException("KeycloakId is missing for User with id " + userId);
+        }
+        return keycloakPort.updatePassword(keycloakId, password);
     }
 
 

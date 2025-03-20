@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 public class User {
     private Long id;
     private String username;
-    private String keycloakId;
     private AccountType accountType;
     private Integer balance;
 }
