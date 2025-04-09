@@ -1,5 +1,6 @@
 package com.lootopia.lootopia_app.infrastructure.out.persistance.entity;
 
+import com.lootopia.lootopia_app.domain.ArtifactRarity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

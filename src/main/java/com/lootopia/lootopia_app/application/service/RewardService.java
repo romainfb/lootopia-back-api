@@ -20,5 +20,4 @@ public class RewardService implements GetRewardsUseCase {
         if (id == null) throw new InvalidParameterException("User ID cannot be null");
         return rewardPersistencePort.findByUserId(id);
     }
-
 }
