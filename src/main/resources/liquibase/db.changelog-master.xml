@@ -10,5 +10,6 @@
     <include file="changelog/changelog-update-user-addkeycloakid.xml" relativeToChangelogFile="true"/>
     <include file="changelog/changelog-add-world-and-duration-column-in-chasse.xml" relativeToChangelogFile="true"/>
     <include file="changelog/changelog-user-delete-cascade.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-add-validated-steps-table.xml" relativeToChangelogFile="true"/>
 </databaseChangeLog>
 
