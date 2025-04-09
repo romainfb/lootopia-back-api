@@ -14,6 +14,8 @@
     <include file="changelog/changelog-add-image-and-rarity-columns.xml" relativeToChangelogFile="true"/>
     <include file="changelog/changelog-delete-not-null-constraint-userid.xml" relativeToChangelogFile="true"/>
     <include file="changelog/changelog-delete-not-null-constraint-userid-artefact.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-add-column-artefactid.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-modif-type-coordonates.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>
 
