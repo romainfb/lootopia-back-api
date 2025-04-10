@@ -18,4 +18,6 @@ public class Reward {
     private String type;
     private BigDecimal valeur;
     private String description;
+    private String imageUrl;
+    private String rarity;
 }

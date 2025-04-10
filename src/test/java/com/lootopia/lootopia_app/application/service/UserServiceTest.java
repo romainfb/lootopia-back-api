@@ -4,6 +4,7 @@ import com.lootopia.lootopia_app.application.port.in.GetArtifactsUseCase;
 import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
 import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
 import com.lootopia.lootopia_app.domain.AccountType;
+import com.lootopia.lootopia_app.domain.ArtifactRarity;
 import com.lootopia.lootopia_app.domain.model.Artifact;
 import com.lootopia.lootopia_app.domain.model.User;
 import com.lootopia.lootopia_app.domain.model.UserInventory;
@@ -148,7 +149,14 @@ class UserServiceTest {
 
     @Test
     void getUserInventory_shouldReturnUserWithArtifacts() {
-        List<Artifact> artifacts = List.of(new Artifact(1L, "testArtifact", "100", "testArtifact.png", "1L", 1L));
+        List<Artifact> artifacts = List.of(Artifact.builder()
+                .title("bite")
+                .cacheId(1L)
+                .userId(1L)
+                .description("suiii")
+                .imageUrl("imagedefou.png")
+                .rarity(ArtifactRarity.LEGENDAIRE)
+                .build());
         when(userPersistencePort.findById(1L)).thenReturn(Optional.of(userEntity));
         when(getArtifactsUseCase.getArtifactsByUserId(1L)).thenReturn(artifacts);
 

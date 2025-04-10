@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="12" author="Florian Pescot-Jourdan">
+        <addColumn tableName="recompense">
+            <column name="image_url" type="varchar(255)"/>
+            <column name="rarete" type="varchar(50)"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

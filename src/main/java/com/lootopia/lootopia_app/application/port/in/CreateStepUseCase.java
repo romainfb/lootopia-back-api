@@ -4,5 +4,5 @@ import com.lootopia.lootopia_app.domain.model.Step;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.StepRequest;
 
 public interface CreateStepUseCase {
-    Step createStep(Long huntId, StepRequest request);
+    Step createStep(Step step);
 }

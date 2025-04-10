@@ -20,16 +20,7 @@ public class StepAdminService implements CreateStepUseCase, UpdateStepUseCase, D
     private final StepPersistencePort stepPersistencePort;
 
     @Override
-    public Step createStep(Long huntId, StepRequest request) {
-        Step step = Step.builder()
-                .huntId(huntId)
-                .description(request.getDescription())
-                .isFinal(request.isFinal())
-                .validatedUsersId(new java.util.HashSet<>())
-                .validationType(request.getTypeClefValidation())
-                .validatedUsersId(new HashSet<>())
-                .build();
-
+    public Step createStep(Step step) {
         return stepPersistencePort.save(step);
     }
 

@@ -10,4 +10,6 @@ import java.util.List;
 public interface RewardRepository extends JpaRepository<RewardEntity, Long> {
 
     List<RewardEntity> findByUtilisateurId(Long id);
+    List<RewardEntity> findByChasseId(Long chasseId);
+
 }

@@ -29,4 +29,27 @@ public class ArtifactPersistenceAdapter implements ArtifactPersistencePort {
                 .map(ArtifactMapper::toDomain)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public Artifact save(Artifact artefact) {
+        ArtifactEntity entity = ArtifactMapper.toEntity(artefact);
+        ArtifactEntity savedEntity = artifactRepository.save(entity);
+        return ArtifactMapper.toDomain(savedEntity);
+    }
+
+    @Override
+    public Optional<Artifact> findById(Long id) {
+        return artifactRepository.findById(id)
+                .map(ArtifactMapper::toDomain);
+    }
+
+    @Override
+    public boolean existsById(Long id) {
+        return artifactRepository.existsById(id);
+    }
+
+    @Override
+    public void delete(Long id) {
+        artifactRepository.deleteById(id);
+    }
 }

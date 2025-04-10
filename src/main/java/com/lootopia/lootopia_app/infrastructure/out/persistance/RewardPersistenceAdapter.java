@@ -10,7 +10,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.lootopia.lootopia_app.infrastructure.out.persistance.mapper.RewardMapper.toDomain;
 
 @Component
 @RequiredArgsConstructor

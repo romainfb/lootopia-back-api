@@ -11,5 +11,11 @@
     <include file="changelog/changelog-add-world-and-duration-column-in-chasse.xml" relativeToChangelogFile="true"/>
     <include file="changelog/changelog-user-delete-cascade.xml" relativeToChangelogFile="true"/>
     <include file="changelog/changelog-add-validated-steps-table.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-add-image-and-rarity-columns.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-delete-not-null-constraint-userid.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-delete-not-null-constraint-userid-artefact.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-add-column-artefactid.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-modif-type-coordonates.xml" relativeToChangelogFile="true"/>
+
 </databaseChangeLog>
 
