@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <!-- Table Utilisateur -->
+    <changeSet id="1" author="Florian Pescot-Jourdan">
+        <createTable tableName="utilisateur">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="email" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="mot_de_passe" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nom" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type_compte" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_mfa_enabled" type="boolean"/>
+            <column name="solde_couronnes" type="decimal"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Table Partenaire -->
+    <changeSet id="2" author="Florian Pescot-Jourdan">
+        <createTable tableName="partenaire">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nom_entreprise" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="contact_email" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="num_siret" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organisateur_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <!-- Add foreign key for organisateur_id -->
+        <addForeignKeyConstraint
+                constraintName="fk_partenaire_organisateur"
+                baseTableName="partenaire"
+                baseColumnNames="organisateur_id"
+                referencedTableName="utilisateur"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Table Chasse -->
+    <changeSet id="3" author="Florian Pescot-Jourdan">
+        <createTable tableName="chasse">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="titre" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="text"/>
+            <column name="mode" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="difficulte" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nombre_participants" type="integer"/>
+            <column name="frais_participation" type="decimal"/>
+            <column name="chat_actif" type="boolean"/>
+            <column name="organisateur_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <!-- Add foreign key for organisateur_id -->
+        <addForeignKeyConstraint
+                constraintName="fk_chasse_organisateur"
+                baseTableName="chasse"
+                baseColumnNames="organisateur_id"
+                referencedTableName="utilisateur"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Table Participation -->
+    <changeSet id="4" author="Florian Pescot-Jourdan">
+        <createTable tableName="participation">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="statut" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date_inscription" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organisateur_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="utilisateur_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="chasse_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <!-- Add foreign key constraints -->
+        <addForeignKeyConstraint
+                constraintName="fk_participation_organisateur"
+                baseTableName="participation"
+                baseColumnNames="organisateur_id"
+                referencedTableName="utilisateur"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                constraintName="fk_participation_utilisateur"
+                baseTableName="participation"
+                baseColumnNames="utilisateur_id"
+                referencedTableName="utilisateur"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                constraintName="fk_participation_chasse"
+                baseTableName="participation"
+                baseColumnNames="chasse_id"
+                referencedTableName="chasse"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Table Etape -->
+    <changeSet id="5" author="Florian Pescot-Jourdan">
+        <createTable tableName="etape">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="chasse_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="text"/>
+            <column name="est_finale" type="boolean"/>
+            <column name="type_clef_validation" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <!-- Add foreign key for chasse_id -->
+        <addForeignKeyConstraint
+                constraintName="fk_etape_chasse"
+                baseTableName="etape"
+                baseColumnNames="chasse_id"
+                referencedTableName="chasse"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Table Cache -->
+    <changeSet id="6" author="Florian Pescot-Jourdan">
+        <createTable tableName="cache">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="chasse_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="coordonnees_gps" type="point">
+                <constraints nullable="false"/>
+            </column>
+            <column name="dimensions" type="json"/>
+        </createTable>
+        <!-- Add foreign key for chasse_id -->
+        <addForeignKeyConstraint
+                constraintName="fk_cache_chasse"
+                baseTableName="cache"
+                baseColumnNames="chasse_id"
+                referencedTableName="chasse"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Table Recompense -->
+    <changeSet id="7" author="Florian Pescot-Jourdan">
+        <createTable tableName="recompense">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="chasse_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="utilisateur_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valeur" type="decimal"/>
+            <column name="description" type="varchar(255)"/>
+        </createTable>
+        <!-- Add foreign key constraints -->
+        <addForeignKeyConstraint
+                constraintName="fk_recompense_chasse"
+                baseTableName="recompense"
+                baseColumnNames="chasse_id"
+                referencedTableName="chasse"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                constraintName="fk_recompense_utilisateur"
+                baseTableName="recompense"
+                baseColumnNames="utilisateur_id"
+                referencedTableName="utilisateur"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Table Artefact -->
+    <changeSet id="8" author="Florian Pescot-Jourdan">
+        <createTable tableName="artefact">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="nom" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rareté" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="text"/>
+            <column name="image" type="varchar(255)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Table Repère -->
+    <changeSet id="9" author="Florian Pescot-Jourdan">
+        <createTable tableName="repere">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="etape_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="coordonnees_gps" type="point">
+                <constraints nullable="false"/>
+            </column>
+            <column name="nom" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <!-- Add foreign key for etape_id -->
+        <addForeignKeyConstraint
+                constraintName="fk_repere_etape"
+                baseTableName="repere"
+                baseColumnNames="etape_id"
+                referencedTableName="etape"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Table Transaction -->
+    <changeSet id="10" author="Florian Pescot-Jourdan">
+        <createTable tableName="transaction">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="utilisateur_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="montant" type="decimal">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type_transaction" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="artefact_id" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <!-- Add foreign key constraints -->
+        <addForeignKeyConstraint
+                constraintName="fk_transaction_utilisateur"
+                baseTableName="transaction"
+                baseColumnNames="utilisateur_id"
+                referencedTableName="utilisateur"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                constraintName="fk_transaction_artefact"
+                baseTableName="transaction"
+                baseColumnNames="artefact_id"
+                referencedTableName="artefact"
+                referencedColumnNames="id"/>
+    </changeSet>
+</databaseChangeLog>
