@@ -3,6 +3,7 @@ package com.lootopia.lootopia_app.application.service;
 
 import com.lootopia.lootopia_app.application.port.in.CreateUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.DeleteUserUseCase;
+import com.lootopia.lootopia_app.application.port.in.FetchAllUsersUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetArtifactsUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.UpdateUserUseCase;
@@ -11,9 +12,9 @@ import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
 import com.lootopia.lootopia_app.domain.AccountType;
 import com.lootopia.lootopia_app.domain.model.User;
 import com.lootopia.lootopia_app.domain.model.UserInventory;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdatedDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserRegisterFromKeycloakDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserToUpdateDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdatedDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
@@ -24,11 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUserUseCase, UpdateUserUseCase {
+public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUserUseCase, UpdateUserUseCase, FetchAllUsersUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final UserPersistencePort userPersistencePort;
@@ -137,5 +139,17 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
         return keycloakPort.updatePassword(keycloakId, password);
     }
 
+    @Override
+    public List<UserRepresentation> getAllUsers() {
+        log.info("Fetching all users from Keycloak");
+        try {
+            List<UserRepresentation> users = keycloakPort.getAllUsers();
+            log.info("Successfully fetched {} users from Keycloak", users.size());
+            return users;
+        } catch (Exception e) {
+            log.error("Error fetching all users from Keycloak", e);
+            throw new RuntimeException("Failed to fetch users from Keycloak: " + e.getMessage(), e);
+        }
+    }
 
 }

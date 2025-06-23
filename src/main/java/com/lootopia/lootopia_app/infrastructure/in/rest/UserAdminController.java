@@ -1,6 +1,7 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest;
 
 import com.lootopia.lootopia_app.application.port.in.DeleteUserUseCase;
+import com.lootopia.lootopia_app.application.port.in.FetchAllUsersUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.UpdateUserUseCase;
 import com.lootopia.lootopia_app.domain.model.User;
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -33,57 +35,59 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @Validated
-@RequestMapping("/api/users")
+@RequestMapping("/api/admin/users")
 @RequiredArgsConstructor
-public class UserController {
+@PreAuthorize("hasRole('ADMIN')")
+public class UserAdminController {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserAdminController.class);
     private final GetUserUseCase getUserUseCase;
     private final UpdateUserUseCase updateUserUseCase;
     private final DeleteUserUseCase deleteUserUseCase;
+    private final FetchAllUsersUseCase fetchAllUsersUseCase;
 
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-
-    @Operation(summary = "Get user", description = "Endpoint to Get user")
+    @Operation(summary = "Get user", description = "Admin endpoint to Get user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(mediaType = "application/json"))
     })
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/detail/{id_user}")
     public ResponseEntity<User> getUserById(@PathVariable @Valid Long id_user) {
-        log.info("Retrieving user by id : {}", id_user);
+        log.info("Admin retrieving user by id : {}", id_user);
         return getUserUseCase.getUserById(id_user)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Get user inventory", description = "Endpoint to Get user inventory")
+    @Operation(summary = "Get user inventory", description = "Admin endpoint to Get user inventory")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(mediaType = "application/json"))
     })
-    @PreAuthorize("isAuthenticated()")
     @GetMapping("/inventory/{id_user}")
     public ResponseEntity<UserInventory> getUserInventory(@PathVariable @Valid Long id_user) {
-        log.info("Retrieving user inventory with id : {}", id_user);
+        log.info("Admin retrieving user inventory with id : {}", id_user);
         return getUserUseCase.getUserInventory(id_user)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Update a user", description = "Endpoint to update an existing user .")
+    @Operation(summary = "Update a user", description = "Admin endpoint to update an existing user.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200",
                     description = "User updated successfully",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserUpdatedDto.class))),
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserUpdatedDto.class))),
             @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "User not found",
@@ -92,7 +96,6 @@ public class UserController {
                     content = @Content(mediaType = "application/json"))
     })
     @PatchMapping("/update")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserUpdatedDto> updateUser(@RequestBody @Valid UserToUpdateDto userDto, @AuthenticationPrincipal Jwt jwt) {
         try {
             String userId = jwt.getSubject();
@@ -105,7 +108,7 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "Update user password", description = "Endpoint to update user password in Keycloak.")
+    @Operation(summary = "Update user password", description = "Admin endpoint to update user password in Keycloak.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "update successful",
                     content = @Content(mediaType = "application/json")),
@@ -117,8 +120,6 @@ public class UserController {
                     content = @Content(mediaType = "application/json"))
     })
     @PutMapping("/key/update")
-    @PreAuthorize("isAuthenticated()")
-
     public ResponseEntity<Void> updateUserPassword(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid UpdatePasswordRequestDto dto) {
         try {
             String userId = jwt.getSubject();
@@ -139,7 +140,7 @@ public class UserController {
         }
     }
 
-    @Operation(summary = "Delete user", description = "Endpoint to Delete user ")
+    @Operation(summary = "Delete user", description = "Admin endpoint to Delete user")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "204",
@@ -162,11 +163,31 @@ public class UserController {
             )
     })
     @DeleteMapping("/delete-account")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteUserById(@AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
         deleteUserUseCase.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Get all users", description = "Admin endpoint to retrieve all users from Keycloak")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved all users",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Not authorized to access this resource",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(mediaType = "application/json"))
+    })
+    @GetMapping("/all")
+    public ResponseEntity<List<UserRepresentation>> getAllUsers() {
+        log.info("Admin retrieving all users from Keycloak");
+        try {
+            List<UserRepresentation> users = fetchAllUsersUseCase.getAllUsers();
+            log.info("Successfully retrieved {} users from Keycloak", users.size());
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            log.error("Error retrieving users from Keycloak", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

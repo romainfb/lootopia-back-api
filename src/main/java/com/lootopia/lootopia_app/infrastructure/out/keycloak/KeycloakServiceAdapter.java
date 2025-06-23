@@ -22,6 +22,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -284,5 +285,17 @@ public class KeycloakServiceAdapter implements KeycloakPort {
                 "&refresh_token=" + accessToken;
     }
 
-
+    @Override
+    public List<UserRepresentation> getAllUsers() {
+        log.info("Fetching all users from Keycloak");
+        try {
+            Keycloak keycloak = getKeycloakInstance();
+            List<UserRepresentation> users = keycloak.realm(realm).users().list();
+            log.info("Successfully fetched {} users from Keycloak", users.size());
+            return users;
+        } catch (Exception e) {
+            log.error("Error fetching all users from Keycloak", e);
+            throw new RuntimeException("Failed to fetch users from Keycloak: " + e.getMessage(), e);
+        }
+    }
 }

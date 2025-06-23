@@ -4,6 +4,7 @@ import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdatedDto;
 import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.UserRepresentation;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface KeycloakPort {
@@ -20,4 +21,6 @@ public interface KeycloakPort {
     Boolean logout(String accessToken);
 
     AccessTokenResponse loginUser(String username, String password);
+
+    List<UserRepresentation> getAllUsers();
 }
