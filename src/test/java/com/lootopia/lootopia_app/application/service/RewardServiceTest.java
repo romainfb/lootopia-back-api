@@ -44,4 +44,25 @@ class RewardServiceTest {
     void getRewardsByUserIdThrowsExceptionForNullUserId() {
         assertThrows(InvalidParameterException.class, () -> rewardService.getRewardsByUserId(null));
     }
+
+    @Test
+    void createRewardWithoutHuntSucceeds() {
+        // Create a reward without a hunt (chasseId is null)
+        Reward rewardWithoutHunt = Reward.builder()
+                .type("Test Type")
+                .valeur(java.math.BigDecimal.valueOf(100))
+                .description("Test Description")
+                .imageUrl("test-image.jpg")
+                .rarity("Common")
+                .build();
+
+        // Mock the persistence port to return the reward
+        when(rewardPersistencePort.save(rewardWithoutHunt)).thenReturn(rewardWithoutHunt);
+
+        // Call the service method
+        Reward createdReward = rewardService.createReward(rewardWithoutHunt);
+
+        // Verify the reward was created successfully
+        assertEquals(rewardWithoutHunt, createdReward);
+    }
 }

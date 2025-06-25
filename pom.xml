@@ -123,11 +123,12 @@
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
 
-
-
-
-
-
+        <!-- AZURE STORAGE -->
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-storage-blob</artifactId>
+            <version>12.22.0</version>
+        </dependency>
 
 		<!-- TESTING -->
 		<dependency>

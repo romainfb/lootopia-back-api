@@ -1,0 +1,23 @@
+package com.lootopia.lootopia_app.infrastructure.in.rest.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class RewardResponse {
+    private Long id;
+    private Long chasseId;
+    private Long utilisateurId;
+    private String type;
+    private BigDecimal valeur;
+    private String description;
+    private String imageUrl;
+    private String rarity;
+}

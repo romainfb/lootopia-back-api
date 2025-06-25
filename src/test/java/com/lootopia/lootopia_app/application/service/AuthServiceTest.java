@@ -63,7 +63,12 @@ class AuthServiceTest {
 
     @Test
     void getUserInfo_ShouldReturnUserInfo_WhenValidUserIdIsProvided() {
-        User userFromDb = new User(2L, "John", AccountType.USER, 0);
+        User userFromDb = User.builder()
+                .id(2L)
+                .username("John")
+                .accountType(AccountType.USER)
+                .balance(0)
+                .build();
         UserRepresentation userKeycloak = new UserRepresentation();
         userKeycloak.setId(USER_ID);
         userKeycloak.setFirstName("John");

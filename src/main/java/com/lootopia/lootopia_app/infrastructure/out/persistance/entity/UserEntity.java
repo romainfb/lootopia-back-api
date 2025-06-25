@@ -1,8 +1,18 @@
 package com.lootopia.lootopia_app.infrastructure.out.persistance.entity;
 
 import com.lootopia.lootopia_app.domain.AccountType;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "utilisateur")
@@ -28,4 +38,7 @@ public class UserEntity {
 
     @Column(name = "solde_couronnes", nullable = false)
     private Integer balance;
+
+    @Column(name = "image_url", nullable = true, length = 1000)
+    private String imageUrl;
 }

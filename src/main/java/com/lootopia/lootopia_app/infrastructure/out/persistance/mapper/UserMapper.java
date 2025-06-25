@@ -10,6 +10,7 @@ public class UserMapper {
                 .accountType(entity.getAccountType())
                 .username(entity.getUsername())
                 .balance(entity.getBalance())
+                .imageUrl(entity.getImageUrl())
                 .build();
     }
 

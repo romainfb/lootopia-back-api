@@ -15,4 +15,5 @@ public class User {
     private String username;
     private AccountType accountType;
     private Integer balance;
+    private String imageUrl;
 }

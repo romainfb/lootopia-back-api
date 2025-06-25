@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,6 +27,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -105,6 +107,39 @@ public class UserController {
         }
     }
 
+    @Operation(summary = "Update user with profile image",
+            description = "Endpoint to update an existing user with profile image.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "User updated successfully",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = UserUpdatedDto.class))),
+            @ApiResponse(responseCode = "400", description = "Bad Request",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(mediaType = "application/json"))
+    })
+    @PatchMapping(value = "/update-with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserUpdatedDto> updateUserWithImage(
+            @ModelAttribute @Valid UserToUpdateDto userDto,
+            @AuthenticationPrincipal Jwt jwt) {
+        try {
+            String userId = jwt.getSubject();
+            UserUpdatedDto updatedUser = updateUserUseCase.updateUser(userDto, userId);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            log.error("IllegalArgumentException in updateUserWithImage: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            log.error("Exception in updateUserWithImage: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
     @Operation(summary = "Update user password", description = "Endpoint to update user password in Keycloak.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "update successful",
@@ -169,4 +204,30 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Get current user",
+            description = "Endpoint to get the current authenticated user's information")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Successfully retrieved user information",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = User.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content),
+            @ApiResponse(responseCode = "500", description = "Internal Server Error",
+                    content = @Content(mediaType = "application/json"))
+    })
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
+        log.info("Retrieving current user information");
+        try {
+            String keycloakId = jwt.getSubject();
+            return getUserUseCase.getUserByKeycloakId(keycloakId)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            log.error("Exception in getCurrentUser: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }

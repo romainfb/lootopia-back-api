@@ -7,6 +7,7 @@ import com.lootopia.lootopia_app.application.port.in.FetchAllUsersUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetArtifactsUseCase;
 import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
 import com.lootopia.lootopia_app.application.port.in.UpdateUserUseCase;
+import com.lootopia.lootopia_app.application.port.out.AzureBlobStoragePort;
 import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
 import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
 import com.lootopia.lootopia_app.domain.AccountType;
@@ -24,7 +25,9 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,6 +39,7 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
     private final UserPersistencePort userPersistencePort;
     private final KeycloakPort keycloakPort;
     private final GetArtifactsUseCase getArtifactsUseCase;
+    private final AzureBlobStoragePort azureBlobStoragePort;
 
     @Override
     public Optional<User> getUserById(Long id_user) {
@@ -50,7 +54,45 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
     @Override
     public Optional<User> getUserByKeycloakId(String keycloakId) {
         if (keycloakId==null) throw new InvalidParameterException("Keycloak ID cannot be null");
-        return userPersistencePort.findByKeycloakId(keycloakId).map(UserMapper::toDomain);
+        return userPersistencePort.findByKeycloakId(keycloakId).map(userEntity -> {
+            User user = UserMapper.toDomain(userEntity);
+
+            // If the user has an imageUrl, generate a fresh SAS URL
+            if (user.getImageUrl()!=null && !user.getImageUrl().isEmpty()) {
+                try {
+                    // Extract the filename from the URL
+                    String imageUrl = user.getImageUrl();
+                    String fileName;
+
+                    // Check if the URL contains a SAS token (indicated by a '?' character)
+                    if (imageUrl.contains("?")) {
+                        // Extract the filename from the URL (everything before the '?')
+                        fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1, imageUrl.indexOf("?"));
+                    } else {
+                        // Extract the filename from the URL (everything after the last '/')
+                        fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+                    }
+
+                    log.info("Generating fresh SAS URL for user image with filename: {}", fileName);
+
+                    // Generate a fresh SAS URL for the image
+                    String sasUrl = azureBlobStoragePort.generateSasUrl(fileName);
+                    if (sasUrl!=null) {
+                        // Update the user's imageUrl with the fresh SAS URL
+                        user.setImageUrl(sasUrl);
+                        log.info("Updated user image URL with fresh SAS URL: {}", sasUrl);
+                    } else {
+                        log.warn("Failed to generate SAS URL for image: {}", fileName);
+                    }
+                } catch (Exception e) {
+                    log.error("Error generating SAS URL for user image: {}", e.getMessage());
+                    // If there's an error, we still return the user with the original imageUrl
+                    // The client will handle the case where the image can't be loaded
+                }
+            }
+
+            return user;
+        });
     }
 
     @Override
@@ -106,8 +148,51 @@ public class UserService implements GetUserUseCase, CreateUserUseCase, DeleteUse
 
         if (user.getUsername() != null) {
             userEntity.setUsername(user.getUsername());
-            userPersistencePort.save(userEntity);
         }
+
+        // Handle profile image upload if provided
+        if (user.getProfileImage()!=null && !user.getProfileImage().isEmpty()) {
+            try {
+                // Check if the user already has an image and delete it
+                if (userEntity.getImageUrl()!=null && !userEntity.getImageUrl().isEmpty()) {
+                    String existingImageUrl = userEntity.getImageUrl();
+                    String existingFileName;
+
+                    // Extract the filename from the URL
+                    if (existingImageUrl.contains("?")) {
+                        // Extract the filename from the URL (everything before the '?')
+                        existingFileName = existingImageUrl.substring(existingImageUrl.lastIndexOf("/") + 1, existingImageUrl.indexOf("?"));
+                    } else {
+                        // Extract the filename from the URL (everything after the last '/')
+                        existingFileName = existingImageUrl.substring(existingImageUrl.lastIndexOf("/") + 1);
+                    }
+
+                    log.info("Deleting existing profile image: {}", existingFileName);
+                    boolean deleted = azureBlobStoragePort.deleteFile(existingFileName);
+                    if (deleted) {
+                        log.info("Existing profile image deleted successfully");
+                    } else {
+                        log.warn("Failed to delete existing profile image: {}", existingFileName);
+                    }
+                }
+
+                MultipartFile imageFile = user.getProfileImage();
+                String fileName = id_user + "_profile_" + imageFile.getOriginalFilename();
+
+                // Upload the image to Azure Blob Storage
+                String imageUrl = azureBlobStoragePort.uploadFile(imageFile, fileName);
+
+                // Update the user entity with the image URL
+                userEntity.setImageUrl(imageUrl);
+                log.info("Profile image uploaded successfully. URL: {}", imageUrl);
+            } catch (IOException e) {
+                log.error("Error uploading profile image", e);
+                throw new RuntimeException("Failed to upload profile image: " + e.getMessage(), e);
+            }
+        }
+
+        // Save the updated user entity
+        userPersistencePort.save(userEntity);
 
         UserUpdatedDto keycloakUpdateDto = UserUpdatedDto.builder()
                 .id(userEntity.getKeycloakId())

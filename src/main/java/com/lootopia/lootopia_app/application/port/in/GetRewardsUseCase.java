@@ -7,4 +7,8 @@ import java.util.List;
 public interface GetRewardsUseCase {
 
     List<Reward> getRewardsByUserId(Long id);
+
+    List<Reward> getAllRewards();
+
+    List<Reward> getRewardsByHuntId(Long huntId);
 }

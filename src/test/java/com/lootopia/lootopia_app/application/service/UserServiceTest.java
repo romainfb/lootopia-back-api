@@ -57,7 +57,12 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
-        user = new User(1L, "testUser", AccountType.USER, 0);
+        user = User.builder()
+                .id(1L)
+                .username("testUser")
+                .accountType(AccountType.USER)
+                .balance(0)
+                .build();
         userEntity = UserEntity.builder()
                 .id(1L)
                 .keycloakId(KEYCLOAK_USER_ID)
@@ -66,9 +71,12 @@ class UserServiceTest {
                 .balance(0)
                 .build();
 
-        userToUpdateDto = new UserToUpdateDto(
-                "test@gmail.com", "firstName", "lastName", "username"
-        );
+        userToUpdateDto = UserToUpdateDto.builder()
+                .email("test@gmail.com")
+                .firstName("firstName")
+                .lastName("lastName")
+                .username("username")
+                .build();
 
         userRepresentation = new UserRepresentation();
         userRepresentation.setUsername("username");
@@ -231,7 +239,9 @@ class UserServiceTest {
 
     @Test
     void updateUser_shouldUpdateOnlyUsername_whenOtherFieldsAreNull() {
-        UserToUpdateDto partialUpdate = new UserToUpdateDto(null, null, null, "newUsername");
+        UserToUpdateDto partialUpdate = UserToUpdateDto.builder()
+                .username("newUsername")
+                .build();
         userEntity.setUsername("oldUsername");
 
         when(userPersistencePort.findByKeycloakId(KEYCLOAK_USER_ID)).thenReturn(Optional.of(userEntity));

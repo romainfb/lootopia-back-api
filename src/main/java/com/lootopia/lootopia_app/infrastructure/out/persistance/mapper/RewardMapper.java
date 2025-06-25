@@ -1,9 +1,7 @@
 package com.lootopia.lootopia_app.infrastructure.out.persistance.mapper;
 
 import com.lootopia.lootopia_app.domain.model.Reward;
-import com.lootopia.lootopia_app.domain.model.User;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.RewardEntity;
-import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
 
 public class RewardMapper {
     public static Reward toDomain(RewardEntity entity) {
@@ -14,6 +12,7 @@ public class RewardMapper {
                 .type(entity.getType())
                 .valeur(entity.getValeur())
                 .description(entity.getDescription())
+                .imageUrl(entity.getImageUrl())
                 .build();
 
     }
@@ -26,6 +25,7 @@ public class RewardMapper {
                 .type(domain.getType())
                 .valeur(domain.getValeur())
                 .description(domain.getDescription())
+                .imageUrl(domain.getImageUrl())
                 .build();
     }
 }
