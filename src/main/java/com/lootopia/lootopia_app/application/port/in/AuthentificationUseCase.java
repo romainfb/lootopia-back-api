@@ -5,7 +5,9 @@ import org.keycloak.representations.AccessTokenResponse;
 
 public interface AuthentificationUseCase {
 
-    AccessTokenResponse exchangeCodeForToken(String code);
+    AccessTokenResponse exchangeCodeForToken(String code, String redirectUri);
+
+    AccessTokenResponse exchangeCodeForToken(String code, String redirectUri, String clientId);
 
     Boolean logout(String accessToken);
 

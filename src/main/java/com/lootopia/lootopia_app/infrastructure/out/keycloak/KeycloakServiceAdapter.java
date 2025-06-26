@@ -48,6 +48,9 @@ public class KeycloakServiceAdapter implements KeycloakPort {
     @Value("${KEYCLOAK_REDIRECT_URI}")
     private String redirectUri;
 
+    @Value("${KEYCLOAK_CLIENT_ID:lootopia_web}")
+    private String clientId;
+
     protected Keycloak getKeycloakInstance() {
         return KeycloakBuilder.builder()
                 .serverUrl(authServerUrl)
@@ -165,16 +168,29 @@ public class KeycloakServiceAdapter implements KeycloakPort {
     }
 
     @Override
-    public AccessTokenResponse getAccessToken(String code) {
+    public AccessTokenResponse getAccessToken(String code, String redirectUri) {
+        return getAccessToken(code, redirectUri, null);
+    }
+
+    @Override
+    public AccessTokenResponse getAccessToken(String code, String redirectUri, String clientId) {
         if (code==null || code.isBlank()) {
             throw new IllegalArgumentException("Authorization code cannot be null or blank");
         }
 
-        log.info("Échange du code d'autorisation contre un access token");
+        if (redirectUri==null || redirectUri.isBlank()) {
+            redirectUri = this.redirectUri;
+        }
+
+        if (clientId==null || clientId.isBlank()) {
+            clientId = this.clientId;
+        }
+
+        log.info("Échange du code d'autorisation contre un access token avec client_id: {}", clientId);
 
         try {
             String tokenEndpoint = getTokenEndpoint();
-            String requestBody = buildTokenRequestBody(code);
+            String requestBody = buildTokenRequestBody(code, redirectUri, clientId);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(tokenEndpoint))
@@ -195,9 +211,9 @@ public class KeycloakServiceAdapter implements KeycloakPort {
         return authServerUrl + "/realms/" + realm + "/protocol/openid-connect/token";
     }
 
-    private String buildTokenRequestBody(String code) {
+    private String buildTokenRequestBody(String code, String redirectUri, String clientId) {
         return "grant_type=authorization_code" +
-                "&client_id=lootopia_web" +
+                "&client_id=" + clientId +
                 "&client_secret=" + clientSecret +
                 "&code=" + code +
                 "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8);
@@ -227,7 +243,7 @@ public class KeycloakServiceAdapter implements KeycloakPort {
         try {
             String tokenEndpoint = getTokenEndpoint();
             String requestBody = "grant_type=password" +
-                    "&client_id=lootopia_web" +
+                    "&client_id=" + clientId +
                     "&client_secret=" + clientSecret +
                     "&username=" + URLEncoder.encode(username, StandardCharsets.UTF_8) +
                     "&password=" + URLEncoder.encode(password, StandardCharsets.UTF_8);
@@ -280,7 +296,7 @@ public class KeycloakServiceAdapter implements KeycloakPort {
     }
 
     private String buildLogoutRequestBody(String accessToken) {
-        return "client_id=lootopia_web" +
+        return "client_id=" + clientId +
                 "&client_secret=" + clientSecret +
                 "&refresh_token=" + accessToken;
     }

@@ -16,7 +16,9 @@ public interface KeycloakPort {
 
     boolean updatePassword(String userId, String newPassword);
 
-    AccessTokenResponse getAccessToken(String code);
+    AccessTokenResponse getAccessToken(String code, String redirectUri);
+
+    AccessTokenResponse getAccessToken(String code, String redirectUri, String clientId);
 
     Boolean logout(String accessToken);
 

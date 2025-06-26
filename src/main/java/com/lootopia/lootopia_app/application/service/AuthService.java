@@ -23,8 +23,13 @@ public class AuthService implements AuthentificationUseCase {
     private final GetUserUseCase getUserUseCase;
 
     @Override
-    public AccessTokenResponse exchangeCodeForToken(String code) {
-      return keycloakPort.getAccessToken(code);
+    public AccessTokenResponse exchangeCodeForToken(String code, String redirectUri) {
+        return keycloakPort.getAccessToken(code, redirectUri);
+    }
+
+    @Override
+    public AccessTokenResponse exchangeCodeForToken(String code, String redirectUri, String clientId) {
+        return keycloakPort.getAccessToken(code, redirectUri, clientId);
     }
 
     @Override

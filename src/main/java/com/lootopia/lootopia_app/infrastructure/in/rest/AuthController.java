@@ -35,7 +35,7 @@ public class AuthController {
 
 
     @Operation(summary = "Exchange authorization code for access token",
-            description = "Receives an authorization code and exchanges it for an access token from Keycloak.")
+            description = "Receives an authorization code and optionally a redirect URI, then exchanges them for an access token from Keycloak.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Token successfully retrieved"),
             @ApiResponse(responseCode = "400", description = "Bad Request - Missing or invalid code",
@@ -46,12 +46,27 @@ public class AuthController {
     @PostMapping("/callback")
     public ResponseEntity<?> exchangeCodeForToken(@RequestBody Map<String, String> body) {
         String code = body.get("code");
+        String redirectUri = body.get("redirect_uri");
+        String clientId = body.get("client_id");
 
         if (code==null || code.isEmpty()) {
             return ResponseEntity.badRequest().body("Missing authorization code");
         }
 
-        AccessTokenResponse tokenResponse = authService.exchangeCodeForToken(code);
+        // Log pour traçabilité
+        if (redirectUri!=null && !redirectUri.isEmpty()) {
+            log.info("Exchange code for token with redirect_uri: {}", redirectUri);
+        } else {
+            log.info("Exchange code for token without redirect_uri");
+        }
+
+        if (clientId!=null && !clientId.isEmpty()) {
+            log.info("Exchange code for token with client_id: {}", clientId);
+        } else {
+            log.info("Exchange code for token without custom client_id");
+        }
+
+        AccessTokenResponse tokenResponse = authService.exchangeCodeForToken(code, redirectUri, clientId);
         return ResponseEntity.ok(tokenResponse);
     }
 
