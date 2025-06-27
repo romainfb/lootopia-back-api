@@ -11,11 +11,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:5173", "https://dev.lootopia-api.lootopia.xyz", "https://dev.lootopia-web.lootopia.xyz", "https://dev.lootopia-web.lootopia.xyz/", "https://dev.lootopia-web.lootopia.xyz/*")
+                .allowedOrigins("http://localhost:5173", "https://dev.lootopia-web.lootopia.xyz")
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowCredentials(true)
+                .maxAge(3600);
     }
 }
-
-
