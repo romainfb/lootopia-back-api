@@ -22,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,17 +50,17 @@ class AuthServiceTest {
     @Test
     void exchangeCodeForToken_ShouldReturnAccessToken_WhenValidCodeIsProvided() {
         String code = "valid_code";
-        String accessToken = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI8I3...";
+        String accessToken = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4I3...";
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
         tokenResponse.setToken(accessToken);
 
-        when(keycloakPort.getAccessToken(code)).thenReturn(tokenResponse);
+        when(keycloakPort.getAccessToken(eq(code), isNull(), isNull())).thenReturn(tokenResponse);
 
-        AccessTokenResponse result = authService.exchangeCodeForToken(code);
+        AccessTokenResponse result = authService.exchangeCodeForToken(code, null, null);
 
         assertNotNull(result);
         assertEquals(accessToken, result.getToken());
-        verify(keycloakPort, times(1)).getAccessToken(code);
+        verify(keycloakPort, times(1)).getAccessToken(eq(code), isNull(), isNull());
     }
 
     @Test

@@ -104,13 +104,13 @@ class KeycloakServiceAdapterTest {
     @Test
     void getAccessToken_ShouldThrowException_WhenCodeIsNull() {
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> keycloakServiceAdapter.getAccessToken(null));
+        assertThrows(IllegalArgumentException.class, () -> keycloakServiceAdapter.getAccessToken(null, null, null));
     }
 
     @Test
     void getAccessToken_ShouldThrowException_WhenCodeIsBlank() {
         // Act & Assert
-        assertThrows(IllegalArgumentException.class, () -> keycloakServiceAdapter.getAccessToken(""));
+        assertThrows(IllegalArgumentException.class, () -> keycloakServiceAdapter.getAccessToken("", null, null));
     }
 
 

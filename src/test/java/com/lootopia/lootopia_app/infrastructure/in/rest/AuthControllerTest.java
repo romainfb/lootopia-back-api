@@ -11,12 +11,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AuthControllerTest {
@@ -43,15 +44,15 @@ class AuthControllerTest {
         AccessTokenResponse tokenResponse = new AccessTokenResponse();
         tokenResponse.setToken(token);
 
-        when(authService.exchangeCodeForToken(code)).thenReturn(tokenResponse);
+        when(authService.exchangeCodeForToken(eq(code), isNull(), isNull())).thenReturn(tokenResponse);
 
         mockMvc.perform(post("/api/auth/callback")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"code\":\"" + code + "\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.access_token").value(token));  // Corrigé ici
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("<access_token>" + token + "</access_token>")));
 
-        verify(authService, times(1)).exchangeCodeForToken(code);
+        verify(authService, times(1)).exchangeCodeForToken(eq(code), isNull(), isNull());
     }
 
     @Test
