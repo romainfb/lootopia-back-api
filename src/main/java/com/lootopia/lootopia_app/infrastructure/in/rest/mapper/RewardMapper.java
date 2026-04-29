@@ -1,6 +1,6 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest.mapper;
 
-import com.lootopia.lootopia_app.application.port.out.AzureBlobStoragePort;
+import com.lootopia.lootopia_app.application.port.out.FileStoragePort;
 import com.lootopia.lootopia_app.domain.model.Reward;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.RewardRequest;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.RewardResponse;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RewardMapper {
 
-    private final AzureBlobStoragePort azureBlobStoragePort;
+    private final FileStoragePort fileStoragePort;
 
     public Reward toReward(RewardRequest request) {
         String imageUrl = request.getImageUrl();
@@ -27,7 +27,7 @@ public class RewardMapper {
         if (image!=null && !image.isEmpty()) {
             try {
                 String fileName = UUID.randomUUID() + "_" + image.getOriginalFilename();
-                imageUrl = azureBlobStoragePort.uploadRewardFile(image, fileName);
+                imageUrl = fileStoragePort.uploadRewardFile(image, fileName);
                 log.info("Uploaded reward image: {}", imageUrl);
             } catch (IOException e) {
                 log.error("Failed to upload reward image", e);

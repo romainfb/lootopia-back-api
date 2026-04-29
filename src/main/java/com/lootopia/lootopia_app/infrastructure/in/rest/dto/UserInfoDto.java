@@ -11,15 +11,7 @@ public class UserInfoDto {
 
     private Long id;
 
-    private String keycloakId;
-
     private String email;
 
-    private String firstName;
-
-    private String lastName;
-
     private String username;
-
-    private Boolean emailVerified;
 }

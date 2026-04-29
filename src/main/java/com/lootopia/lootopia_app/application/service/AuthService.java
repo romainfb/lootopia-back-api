@@ -1,72 +1,100 @@
 package com.lootopia.lootopia_app.application.service;
 
 import com.lootopia.lootopia_app.application.port.in.AuthentificationUseCase;
-import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
-import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
-import com.lootopia.lootopia_app.domain.model.User;
+import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
+import com.lootopia.lootopia_app.domain.AccountType;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.RegisterRequestDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.TokenResponseDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserInfoDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
+import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;
+import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
+import com.lootopia.lootopia_app.infrastructure.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
-import org.keycloak.representations.AccessTokenResponse;
-import org.keycloak.representations.idm.UserRepresentation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
-
-import java.util.NoSuchElementException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService implements AuthentificationUseCase {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
-    private final KeycloakPort keycloakPort;
-    private final GetUserUseCase getUserUseCase;
+    private final UserPersistencePort userPersistencePort;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final AuthenticationManager authenticationManager;
+    private final JwtDecoder jwtDecoder;
 
     @Override
-    public AccessTokenResponse exchangeCodeForToken(String code, String redirectUri) {
-        return keycloakPort.getAccessToken(code, redirectUri);
+    @Transactional
+    public TokenResponseDto register(RegisterRequestDto request) {
+        if (userPersistencePort.existsByEmail(request.getEmail())) {
+            throw new InvalidParameterException("Email already registered");
+        }
+        UserEntity entity = UserEntity.builder()
+                .email(request.getEmail())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .username(request.getUsername())
+                .accountType(AccountType.USER)
+                .balance(0)
+                .enabled(true)
+                .build();
+        return issueTokens(userPersistencePort.save(entity));
     }
 
     @Override
-    public AccessTokenResponse exchangeCodeForToken(String code, String redirectUri, String clientId) {
-        return keycloakPort.getAccessToken(code, redirectUri, clientId);
+    public TokenResponseDto login(String email, String password) {
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+        } catch (AuthenticationException e) {
+            throw new InvalidParameterException("Invalid credentials");
+        }
+        UserEntity user = userPersistencePort.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        return issueTokens(user);
     }
 
     @Override
-    public Boolean logout(String accessToken) {
-        log.info("Logging out user with access token: {}", accessToken);
-        return keycloakPort.logout(accessToken);
+    public TokenResponseDto refresh(String refreshToken) {
+        Jwt jwt;
+        try {
+            jwt = jwtDecoder.decode(refreshToken);
+        } catch (JwtException e) {
+            throw new InvalidParameterException("Invalid refresh token");
+        }
+        if (!JwtTokenProvider.TYPE_REFRESH.equals(jwt.getClaimAsString(JwtTokenProvider.CLAIM_TYPE))) {
+            throw new InvalidParameterException("Token is not a refresh token");
+        }
+        Long userId = Long.valueOf(jwt.getSubject());
+        UserEntity user = userPersistencePort.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        if (!user.isEnabled()) {
+            throw new InvalidParameterException("User is disabled");
+        }
+        return issueTokens(user);
     }
 
     @Override
-    public UserInfoDto getUserInfo(String userId) {
-        log.info("Getting user info for user with ID: {}", userId);
-
-        UserRepresentation userKeycloak = keycloakPort.getUserById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User not found in Keycloak"));
-
-        User userFromDb = getUserUseCase.getUserByKeycloakId(userId)
-                .orElseThrow(() -> new NoSuchElementException("User not found in database"));
-
+    public UserInfoDto getUserInfo(Long userId) {
+        UserEntity user = userPersistencePort.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         return UserInfoDto.builder()
-                .id(userFromDb.getId())
-                .keycloakId(userKeycloak.getId())
-                .firstName(userKeycloak.getFirstName())
-                .emailVerified(userKeycloak.isEmailVerified())
-                .lastName(userKeycloak.getLastName())
-                .username(userKeycloak.getUsername())
-                .email(userKeycloak.getEmail())
+                .id(user.getId())
+                .email(user.getEmail())
+                .username(user.getUsername())
                 .build();
     }
 
-    @Override
-    public AccessTokenResponse loginUser(String username, String password) {
-        return keycloakPort.loginUser(username, password);
+    private TokenResponseDto issueTokens(UserEntity user) {
+        return TokenResponseDto.bearer(
+                jwtTokenProvider.generateAccessToken(user),
+                jwtTokenProvider.generateRefreshToken(user),
+                jwtTokenProvider.getAccessTokenTtl().toSeconds());
     }
-
-
-
-
-
-
 }

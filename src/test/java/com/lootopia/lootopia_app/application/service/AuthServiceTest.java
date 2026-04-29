@@ -1,146 +1,184 @@
 package com.lootopia.lootopia_app.application.service;
 
-import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
-import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
+import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
 import com.lootopia.lootopia_app.domain.AccountType;
-import com.lootopia.lootopia_app.domain.model.User;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.RegisterRequestDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.TokenResponseDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserInfoDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
+import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;
+import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
+import com.lootopia.lootopia_app.infrastructure.security.JwtTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.keycloak.representations.AccessTokenResponse;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 
-import java.util.NoSuchElementException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.times;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AuthServiceTest {
 
     @Mock
-    private KeycloakPort keycloakPort;
+    private UserPersistencePort userPersistencePort;
 
     @Mock
-    private GetUserUseCase getUserUseCase;
+    private PasswordEncoder passwordEncoder;
 
-    @Spy
+    @Mock
+    private JwtTokenProvider jwtTokenProvider;
+
+    @Mock
+    private AuthenticationManager authenticationManager;
+
+    @Mock
+    private JwtDecoder jwtDecoder;
+
     @InjectMocks
     private AuthService authService;
 
-    private final String USER_ID = "user123";
+    private UserEntity sampleUser;
 
     @BeforeEach
     void setUp() {
-    }
-
-    @Test
-    void exchangeCodeForToken_ShouldReturnAccessToken_WhenValidCodeIsProvided() {
-        String code = "valid_code";
-        String accessToken = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4I3...";
-        AccessTokenResponse tokenResponse = new AccessTokenResponse();
-        tokenResponse.setToken(accessToken);
-
-        when(keycloakPort.getAccessToken(eq(code), isNull(), isNull())).thenReturn(tokenResponse);
-
-        AccessTokenResponse result = authService.exchangeCodeForToken(code, null, null);
-
-        assertNotNull(result);
-        assertEquals(accessToken, result.getToken());
-        verify(keycloakPort, times(1)).getAccessToken(eq(code), isNull(), isNull());
-    }
-
-    @Test
-    void getUserInfo_ShouldReturnUserInfo_WhenValidUserIdIsProvided() {
-        User userFromDb = User.builder()
-                .id(2L)
-                .username("John")
+        sampleUser = UserEntity.builder()
+                .id(42L)
+                .email("alice@test.com")
+                .username("alice")
+                .passwordHash("{bcrypt}HASH")
                 .accountType(AccountType.USER)
                 .balance(0)
+                .enabled(true)
                 .build();
-        UserRepresentation userKeycloak = new UserRepresentation();
-        userKeycloak.setId(USER_ID);
-        userKeycloak.setFirstName("John");
-        userKeycloak.setLastName("Doe");
-        userKeycloak.setEmail("john.doe@example.com");
-        userKeycloak.setUsername("john.doe");
-        userKeycloak.setEmailVerified(true);
-
-        when(keycloakPort.getUserById(USER_ID)).thenReturn(Optional.of(userKeycloak));
-        when(getUserUseCase.getUserByKeycloakId(USER_ID)).thenReturn(Optional.of(userFromDb));
-
-        UserInfoDto result = authService.getUserInfo(USER_ID);
-
-        assertNotNull(result);
-        assertEquals(userFromDb.getId(), result.getId());
-        assertEquals(userKeycloak.getFirstName(), result.getFirstName());
-        assertEquals(userKeycloak.getLastName(), result.getLastName());
-        assertEquals(userKeycloak.getEmail(), result.getEmail());
-        assertEquals(USER_ID, result.getKeycloakId());
-        verify(keycloakPort, times(1)).getUserById(USER_ID);
-        verify(getUserUseCase, times(1)).getUserByKeycloakId(USER_ID);
+        when(jwtTokenProvider.getAccessTokenTtl()).thenReturn(Duration.ofMinutes(15));
+        when(jwtTokenProvider.generateAccessToken(any(UserEntity.class))).thenReturn("ACCESS");
+        when(jwtTokenProvider.generateRefreshToken(any(UserEntity.class))).thenReturn("REFRESH");
     }
 
     @Test
-    void getUserInfo_ShouldThrowException_WhenUserNotFoundInKeycloak() {
-        when(keycloakPort.getUserById(USER_ID)).thenReturn(Optional.empty());
+    void register_creates_user_and_issues_tokens() {
+        RegisterRequestDto request = RegisterRequestDto.builder()
+                .email("alice@test.com")
+                .password("plaintext-password")
+                .username("alice")
+                .build();
+        when(userPersistencePort.existsByEmail("alice@test.com")).thenReturn(false);
+        when(passwordEncoder.encode("plaintext-password")).thenReturn("{bcrypt}HASH");
+        when(userPersistencePort.save(any(UserEntity.class))).thenReturn(sampleUser);
 
-        assertThrows(NoSuchElementException.class, () -> authService.getUserInfo(USER_ID));
+        TokenResponseDto result = authService.register(request);
 
-        verify(keycloakPort, times(1)).getUserById(USER_ID);
+        assertThat(result.getAccessToken()).isEqualTo("ACCESS");
+        assertThat(result.getRefreshToken()).isEqualTo("REFRESH");
+        assertThat(result.getTokenType()).isEqualTo("Bearer");
+        assertThat(result.getExpiresIn()).isEqualTo(900);
     }
 
     @Test
-    void getUserInfo_ShouldThrowException_WhenUserNotFoundInDatabase() {
-        UserRepresentation userKeycloak = new UserRepresentation();
-        userKeycloak.setId(USER_ID);
+    void register_throws_when_email_already_used() {
+        RegisterRequestDto request = RegisterRequestDto.builder()
+                .email("alice@test.com").password("p").username("alice").build();
+        when(userPersistencePort.existsByEmail("alice@test.com")).thenReturn(true);
 
-        when(keycloakPort.getUserById(USER_ID)).thenReturn(Optional.of(userKeycloak));
-        when(getUserUseCase.getUserByKeycloakId(USER_ID)).thenReturn(Optional.empty());
-
-        assertThrows(NoSuchElementException.class, () -> authService.getUserInfo(USER_ID));
-
-        verify(keycloakPort, times(1)).getUserById(USER_ID);
-        verify(getUserUseCase, times(1)).getUserByKeycloakId(USER_ID);
+        assertThrows(InvalidParameterException.class, () -> authService.register(request));
     }
 
     @Test
-    void logout_ShouldReturnTrue_WhenSuccessful() {
-        String accessToken = "valid_token";
-        when(keycloakPort.logout(accessToken)).thenReturn(true);
+    void login_returns_tokens_when_credentials_valid() {
+        when(userPersistencePort.findByEmail("alice@test.com")).thenReturn(Optional.of(sampleUser));
 
-        Boolean result = authService.logout(accessToken);
+        TokenResponseDto result = authService.login("alice@test.com", "plaintext");
 
-        assertTrue(result);
-        verify(keycloakPort, times(1)).logout(accessToken);
+        assertThat(result.getAccessToken()).isEqualTo("ACCESS");
+        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
     }
 
     @Test
-    void loginUser_ShouldReturnAccessToken_WhenValidCredentialsAreProvided() {
-        String username = "john.doe";
-        String password = "password123";
-        AccessTokenResponse tokenResponse = new AccessTokenResponse();
-        tokenResponse.setToken("eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI8I3...");
+    void login_throws_when_credentials_invalid() {
+        when(authenticationManager.authenticate(any())).thenThrow(new BadCredentialsException("nope"));
+        assertThrows(InvalidParameterException.class, () -> authService.login("alice@test.com", "wrong"));
+    }
 
-        when(keycloakPort.loginUser(username, password)).thenReturn(tokenResponse);
+    @Test
+    void refresh_issues_new_tokens_for_valid_refresh_token() {
+        Jwt jwt = jwtFor(JwtTokenProvider.TYPE_REFRESH);
+        when(jwtDecoder.decode("REFRESH")).thenReturn(jwt);
+        when(userPersistencePort.findById(42L)).thenReturn(Optional.of(sampleUser));
 
-        AccessTokenResponse result = authService.loginUser(username, password);
+        TokenResponseDto result = authService.refresh("REFRESH");
 
-        assertNotNull(result);
-        assertEquals(tokenResponse.getToken(), result.getToken());
-        verify(keycloakPort, times(1)).loginUser(username, password);
+        assertThat(result.getAccessToken()).isEqualTo("ACCESS");
+        assertThat(result.getRefreshToken()).isEqualTo("REFRESH");
+    }
+
+    @Test
+    void refresh_rejects_access_token() {
+        Jwt jwt = jwtFor(JwtTokenProvider.TYPE_ACCESS);
+        when(jwtDecoder.decode("ACCESS")).thenReturn(jwt);
+
+        assertThrows(InvalidParameterException.class, () -> authService.refresh("ACCESS"));
+    }
+
+    @Test
+    void refresh_rejects_invalid_token() {
+        when(jwtDecoder.decode("garbage")).thenThrow(new JwtException("bad"));
+        assertThrows(InvalidParameterException.class, () -> authService.refresh("garbage"));
+    }
+
+    @Test
+    void refresh_rejects_disabled_user() {
+        sampleUser.setEnabled(false);
+        Jwt jwt = jwtFor(JwtTokenProvider.TYPE_REFRESH);
+        when(jwtDecoder.decode("REFRESH")).thenReturn(jwt);
+        when(userPersistencePort.findById(42L)).thenReturn(Optional.of(sampleUser));
+
+        assertThrows(InvalidParameterException.class, () -> authService.refresh("REFRESH"));
+    }
+
+    @Test
+    void getUserInfo_returns_user_when_found() {
+        when(userPersistencePort.findById(42L)).thenReturn(Optional.of(sampleUser));
+
+        UserInfoDto result = authService.getUserInfo(42L);
+
+        assertThat(result.getId()).isEqualTo(42L);
+        assertThat(result.getEmail()).isEqualTo("alice@test.com");
+        assertThat(result.getUsername()).isEqualTo("alice");
+    }
+
+    @Test
+    void getUserInfo_throws_when_not_found() {
+        when(userPersistencePort.findById(99L)).thenReturn(Optional.empty());
+        assertThrows(ResourceNotFoundException.class, () -> authService.getUserInfo(99L));
+    }
+
+    private Jwt jwtFor(String type) {
+        return new Jwt(
+                "tok",
+                Instant.now(),
+                Instant.now().plus(Duration.ofMinutes(15)),
+                Map.of("alg", "RS256"),
+                Map.of(JwtTokenProvider.CLAIM_TYPE, type, "sub", "42"));
     }
 }

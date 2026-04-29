@@ -5,19 +5,19 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
-public interface AzureBlobStoragePort {
+public interface FileStoragePort {
     /**
-     * Upload a file to Azure Blob Storage
+     * Upload a file to the file system
      *
      * @param file The file to upload
      * @param fileName The original name of the file
-     * @return The unique name of the uploaded file in Azure Blob Storage
+     * @return The unique name of the uploaded file
      * @throws IOException If there's an error uploading the file
      */
     String uploadFile(MultipartFile file, String fileName) throws IOException;
 
     /**
-     * Delete a file from Azure Blob Storage
+     * Delete a file from the file system
      *
      * @param fileName The name of the file to delete
      * @return true if the file was deleted, false otherwise
@@ -25,7 +25,7 @@ public interface AzureBlobStoragePort {
     boolean deleteFile(String fileName);
 
     /**
-     * Download a file from Azure Blob Storage
+     * Download a file from the file system
      *
      * @param fileName The name of the file to download
      * @return A resource representing the file
@@ -33,25 +33,25 @@ public interface AzureBlobStoragePort {
     Resource downloadFile(String fileName);
 
     /**
-     * Generate a SAS URL for a blob
+     * Generate a URL for a file
      *
-     * @param fileName The name of the blob
-     * @return The SAS URL for the blob, or null if the blob doesn't exist
+     * @param fileName The name of the file
+     * @return The URL for the file, or null if the file doesn't exist
      */
-    String generateSasUrl(String fileName);
+    String generateUrl(String fileName);
 
     /**
-     * Upload a file to the rewards container in Azure Blob Storage
+     * Upload a reward file to the file system
      *
      * @param file The file to upload
      * @param fileName The original name of the file
-     * @return The unique name of the uploaded file in Azure Blob Storage
+     * @return The unique name of the uploaded file
      * @throws IOException If there's an error uploading the file
      */
     String uploadRewardFile(MultipartFile file, String fileName) throws IOException;
 
     /**
-     * Delete a file from the rewards container in Azure Blob Storage
+     * Delete a reward file from the file system
      *
      * @param fileName The name of the file to delete
      * @return true if the file was deleted, false otherwise
@@ -59,7 +59,7 @@ public interface AzureBlobStoragePort {
     boolean deleteRewardFile(String fileName);
 
     /**
-     * Download a file from the rewards container in Azure Blob Storage
+     * Download a reward file from the file system
      *
      * @param fileName The name of the file to download
      * @return A resource representing the file
@@ -67,10 +67,10 @@ public interface AzureBlobStoragePort {
     Resource downloadRewardFile(String fileName);
 
     /**
-     * Generate a SAS URL for a blob in the rewards container
+     * Generate a URL for a reward file
      *
-     * @param fileName The name of the blob
-     * @return The SAS URL for the blob, or null if the blob doesn't exist
+     * @param fileName The name of the file
+     * @return The URL for the file, or null if the file doesn't exist
      */
-    String generateRewardSasUrl(String fileName);
+    String generateRewardUrl(String fileName);
 }

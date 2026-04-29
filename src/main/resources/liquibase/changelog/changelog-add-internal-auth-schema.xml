@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <!-- PR1 : ajout du schéma minimal pour l'auth interne (Spring Security + JWT stateless).
+         Colonnes nullable pour coexister avec Keycloak pendant la migration.
+         keycloak_id sera supprimé en PR4. -->
+
+    <changeSet author="Thibault Garrigues" id="auth-internal-1">
+        <addColumn tableName="utilisateur">
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="true" unique="true" uniqueConstraintName="uk_utilisateur_email"/>
+            </column>
+            <column name="password_hash" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="enabled" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

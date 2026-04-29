@@ -16,9 +16,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,188 +43,76 @@ public class UserController {
     private final UpdateUserUseCase updateUserUseCase;
     private final DeleteUserUseCase deleteUserUseCase;
 
-    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
-
-    @Operation(summary = "Get user", description = "Endpoint to Get user")
+    @Operation(summary = "Get user", description = "Endpoint to get a user by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "404", description = "User not found",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error",
                     content = @Content(mediaType = "application/json"))
     })
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/detail/{id_user}")
     public ResponseEntity<User> getUserById(@PathVariable @Valid Long id_user) {
-        log.info("Retrieving user by id : {}", id_user);
         return getUserUseCase.getUserById(id_user)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Get user inventory", description = "Endpoint to Get user inventory")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "400", description = "Bad Request",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(mediaType = "application/json"))
-    })
+    @Operation(summary = "Get user inventory")
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/inventory/{id_user}")
     public ResponseEntity<UserInventory> getUserInventory(@PathVariable @Valid Long id_user) {
-        log.info("Retrieving user inventory with id : {}", id_user);
         return getUserUseCase.getUserInventory(id_user)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @Operation(summary = "Update a user", description = "Endpoint to update an existing user .")
+    @Operation(summary = "Update current user")
     @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "User updated successfully",
+            @ApiResponse(responseCode = "200", description = "User updated successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserUpdatedDto.class))),
-            @ApiResponse(responseCode = "400", description = "Bad Request",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "404", description = "User not found",
-                    content = @Content),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(mediaType = "application/json"))
+            @ApiResponse(responseCode = "404", description = "User not found", content = @Content)
     })
     @PatchMapping("/update")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserUpdatedDto> updateUser(@RequestBody @Valid UserToUpdateDto userDto, @AuthenticationPrincipal Jwt jwt) {
-        try {
-            String userId = jwt.getSubject();
-            UserUpdatedDto updatedUser = updateUserUseCase.updateUser(userDto, userId);
-            return ResponseEntity.ok(updatedUser);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        return ResponseEntity.ok(updateUserUseCase.updateUser(userDto, currentUserId(jwt)));
     }
 
-    @Operation(summary = "Update user with profile image",
-            description = "Endpoint to update an existing user with profile image.")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "User updated successfully",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = UserUpdatedDto.class))),
-            @ApiResponse(responseCode = "400", description = "Bad Request",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "404", description = "User not found",
-                    content = @Content),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(mediaType = "application/json"))
-    })
+    @Operation(summary = "Update current user with profile image")
     @PatchMapping(value = "/update-with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserUpdatedDto> updateUserWithImage(
-            @ModelAttribute @Valid UserToUpdateDto userDto,
-            @AuthenticationPrincipal Jwt jwt) {
-        try {
-            String userId = jwt.getSubject();
-            UserUpdatedDto updatedUser = updateUserUseCase.updateUser(userDto, userId);
-            return ResponseEntity.ok(updatedUser);
-        } catch (IllegalArgumentException e) {
-            log.error("IllegalArgumentException in updateUserWithImage: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(null);
-        } catch (Exception e) {
-            log.error("Exception in updateUserWithImage: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    public ResponseEntity<UserUpdatedDto> updateUserWithImage(@ModelAttribute @Valid UserToUpdateDto userDto,
+                                                              @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(updateUserUseCase.updateUser(userDto, currentUserId(jwt)));
     }
 
-    @Operation(summary = "Update user password", description = "Endpoint to update user password in Keycloak.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "update successful",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "400", description = "Bad Request",
-                    content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "404", description = "User not found",
-                    content = @Content),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(mediaType = "application/json"))
-    })
+    @Operation(summary = "Update current user password")
     @PutMapping("/key/update")
     @PreAuthorize("isAuthenticated()")
-
-    public ResponseEntity<Void> updateUserPassword(@AuthenticationPrincipal Jwt jwt, @RequestBody @Valid UpdatePasswordRequestDto dto) {
-        try {
-            String userId = jwt.getSubject();
-            boolean isUpdated = updateUserUseCase.updatePassword(dto.getPassword(), userId);
-            logger.debug("updatePassword result: {}", isUpdated);
-
-            if (isUpdated) {
-                return ResponseEntity.ok().build();
-            } else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-            }
-        } catch (IllegalArgumentException e) {
-            logger.error("IllegalArgumentException in updateUserPassword: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().build();
-        } catch (Exception e) {
-            logger.error("Exception in updateUserPassword: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+    public ResponseEntity<Void> updateUserPassword(@AuthenticationPrincipal Jwt jwt,
+                                                   @RequestBody @Valid UpdatePasswordRequestDto dto) {
+        return updateUserUseCase.updatePassword(dto.getPassword(), currentUserId(jwt))
+                ? ResponseEntity.ok().build()
+                :ResponseEntity.badRequest().build();
     }
 
-    @Operation(summary = "Delete user", description = "Endpoint to Delete user ")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "204",
-                    description = "User deleted successfully"
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Bad Request - Invalid input",
-                    content = @Content(mediaType = "application/json")
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "User not found",
-                    content = @Content
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Internal Server Error",
-                    content = @Content(mediaType = "application/json")
-            )
-    })
+    @Operation(summary = "Delete current user account")
     @DeleteMapping("/delete-account")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteUserById(@AuthenticationPrincipal Jwt jwt) {
-        String userId = jwt.getSubject();
-        deleteUserUseCase.deleteUser(userId);
+        deleteUserUseCase.deleteUser(currentUserId(jwt));
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Get current user",
-            description = "Endpoint to get the current authenticated user's information")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Successfully retrieved user information",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = User.class))),
-            @ApiResponse(responseCode = "404", description = "User not found",
-                    content = @Content),
-            @ApiResponse(responseCode = "500", description = "Internal Server Error",
-                    content = @Content(mediaType = "application/json"))
-    })
+    @Operation(summary = "Get current user")
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
-        log.info("Retrieving current user information");
-        try {
-            String keycloakId = jwt.getSubject();
-            return getUserUseCase.getUserByKeycloakId(keycloakId)
-                    .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
-        } catch (Exception e) {
-            log.error("Exception in getCurrentUser: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        return getUserUseCase.getUserById(currentUserId(jwt))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    private Long currentUserId(Jwt jwt) {
+        return Long.valueOf(jwt.getSubject());
     }
 }

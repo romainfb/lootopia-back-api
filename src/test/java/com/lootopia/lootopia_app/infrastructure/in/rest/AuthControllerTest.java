@@ -1,29 +1,34 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lootopia.lootopia_app.application.port.in.AuthentificationUseCase;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.LoginRequestDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.RegisterRequestDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.TokenResponseDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.keycloak.representations.AccessTokenResponse;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AuthControllerTest {
-    //TODO: Implement tests for AuthController
 
     private MockMvc mockMvc;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Mock
     private AuthentificationUseCase authService;
@@ -34,35 +39,54 @@ class AuthControllerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(authController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(authController)
+                .setMessageConverters(new MappingJackson2HttpMessageConverter())
+                .build();
     }
 
     @Test
-    void exchangeCodeForToken_ShouldReturnToken_WhenValidCodeIsProvided() throws Exception {
-        String code = "valid_code";
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4STYyVFlSR2tmYWMwVU15dlk1djVhaVJtaU1lYmpWTjlqQTZHTDB4ODg0In0.eyJleHAiOjE3NDIyMTU5NTcsImlhdCI6MTc0MjIxNTg5NywiYXV0aF90aW1lIjoxNzQyMjE1ODcyLCJqdGkiOiIyYzU1ZGI5ZC03MTZmLTRlM2EtODdmYS1hZmRjZDAwMGQyMjQiLCJpc3MiOiJodHRwczovL2tleWNsb2FrLWxvb3RvcGlhLnJvbWFpbmZiLmZyL3JlYWxtcy9tYXN0ZXIiLCJhdWQiOiJhY2NvdW50Iiwic3ViIjoiYjM5OWVhM2MtMDkwMi00Y2Q4LTgzODMtYTliZGFiNmQyMmE5IiwidHlwIjoiQmVhcmVyIiwiYXpwIjoibG9vdG9waWFfd2ViIiwic2lkIjoiZGQwMDZlY2QtMDJmYy00ZWY3LThkODQtZjhjMTIzOTFlNGU0IiwiYWNyIjoiMT7eNf9PFfbuI2hxyJ2UgMI-490zqK7YezCYmabFlaEL3Tp4_gUPIScpJWi-TnLfjXCekJM-SGyoIM5A";
-        AccessTokenResponse tokenResponse = new AccessTokenResponse();
-        tokenResponse.setToken(token);
+    void register_returns_tokens() throws Exception {
+        RegisterRequestDto request = RegisterRequestDto.builder()
+                .email("a@b.c").password("password123").username("alice").build();
+        when(authService.register(any(RegisterRequestDto.class)))
+                .thenReturn(TokenResponseDto.bearer("ACC", "REF", 900));
 
-        when(authService.exchangeCodeForToken(eq(code), isNull(), isNull())).thenReturn(tokenResponse);
-
-        mockMvc.perform(post("/api/auth/callback")
+        mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"code\":\"" + code + "\"}"))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("<access_token>" + token + "</access_token>")));
-
-        verify(authService, times(1)).exchangeCodeForToken(eq(code), isNull(), isNull());
+                .andExpect(jsonPath("$.accessToken").value("ACC"))
+                .andExpect(jsonPath("$.refreshToken").value("REF"))
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.expiresIn").value(900));
     }
 
     @Test
-    void exchangeCodeForToken_ShouldReturnBadRequest_WhenCodeIsMissing() throws Exception {
-        mockMvc.perform(post("/api/auth/callback")
+    void login_returns_tokens() throws Exception {
+        LoginRequestDto request = LoginRequestDto.builder()
+                .username("a@b.c").password("password123").build();
+        when(authService.login(eq("a@b.c"), eq("password123")))
+                .thenReturn(TokenResponseDto.bearer("ACC", "REF", 900));
+
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Missing authorization code"));
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("ACC"));
+
+        verify(authService).login("a@b.c", "password123");
     }
 
+    @Test
+    void refresh_returns_tokens() throws Exception {
+        when(authService.refresh("REF"))
+                .thenReturn(TokenResponseDto.bearer("ACC2", "REF2", 900));
 
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("refreshToken", "REF"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("ACC2"))
+                .andExpect(jsonPath("$.refreshToken").value("REF2"));
+    }
 }
