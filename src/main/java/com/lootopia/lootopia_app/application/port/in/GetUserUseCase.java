@@ -8,6 +8,5 @@ import java.util.Optional;
 public interface GetUserUseCase {
     Optional<User> getUserById(Long id_user);
 
-    Optional<User> getUserByKeycloakId(String keycloakId);
     Optional<UserInventory> getUserInventory(Long id_user);
 }

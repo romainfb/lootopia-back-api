@@ -1,11 +1,8 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lootopia.lootopia_app.application.port.in.GetUserUseCase;
-import com.lootopia.lootopia_app.application.port.in.UpdateUserUseCase;
 import com.lootopia.lootopia_app.domain.model.User;
 import com.lootopia.lootopia_app.domain.model.UserInventory;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserToUpdateDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -17,13 +14,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -35,13 +29,8 @@ class UserControllerTest {
     @Mock
     private GetUserUseCase getUserUseCase;
 
-    @Mock
-    private UpdateUserUseCase updateUserUseCase;
-
     @InjectMocks
     private UserController userController;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
@@ -97,23 +86,5 @@ class UserControllerTest {
 
         verify(getUserUseCase, times(1)).getUserInventory(id);
     }
-
-    @Test
-    void updateUser_ShouldReturnBadRequestWhenEmailIsInvalid() throws Exception {
-        UserToUpdateDto userToUpdateDto = UserToUpdateDto.builder()
-                .username("username")
-                .email("invalid-email") // Email invalide
-                .firstName("firstName")
-                .lastName("lastName")
-                .build();
-
-        mockMvc.perform(patch("/api/users/update")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userToUpdateDto)))
-                .andExpect(status().isBadRequest());
-
-        verify(updateUserUseCase, never()).updateUser(any(), any());
-    }
-
 
 }

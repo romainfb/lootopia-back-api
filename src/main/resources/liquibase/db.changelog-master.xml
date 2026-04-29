@@ -20,5 +20,7 @@
     <include file="changelog/changelog-modify-image-url-length.xml" relativeToChangelogFile="true"/>
     <include file="changelog/changelog-delete-not-null-constraint-chasseid.xml" relativeToChangelogFile="true"/>
     <include file="changelog/changelog-modify-reward-image-url-length.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-add-internal-auth-schema.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-drop-keycloak-id.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

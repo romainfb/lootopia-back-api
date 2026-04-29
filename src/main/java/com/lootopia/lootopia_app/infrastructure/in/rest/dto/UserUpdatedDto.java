@@ -10,16 +10,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class UserUpdatedDto {
 
-    private String id;
-
-    @Nullable
-    private String email;
-
-    @Nullable
-    private String firstName;
-
-    @Nullable
-    private String lastName;
+    private Long id;
 
     @Nullable
     private String username;

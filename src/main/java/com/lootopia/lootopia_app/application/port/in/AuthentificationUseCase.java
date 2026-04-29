@@ -1,18 +1,16 @@
 package com.lootopia.lootopia_app.application.port.in;
 
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.RegisterRequestDto;
+import com.lootopia.lootopia_app.infrastructure.in.rest.dto.TokenResponseDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserInfoDto;
-import org.keycloak.representations.AccessTokenResponse;
 
 public interface AuthentificationUseCase {
 
-    AccessTokenResponse exchangeCodeForToken(String code, String redirectUri);
+    TokenResponseDto register(RegisterRequestDto request);
 
-    AccessTokenResponse exchangeCodeForToken(String code, String redirectUri, String clientId);
+    TokenResponseDto login(String email, String password);
 
-    Boolean logout(String accessToken);
+    TokenResponseDto refresh(String refreshToken);
 
-    UserInfoDto getUserInfo(String userId);
-
-    AccessTokenResponse loginUser(String username, String password);
-
+    UserInfoDto getUserInfo(Long userId);
 }
