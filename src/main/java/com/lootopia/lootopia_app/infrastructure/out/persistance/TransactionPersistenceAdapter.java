@@ -6,11 +6,13 @@ import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.Transacti
 import com.lootopia.lootopia_app.infrastructure.out.persistance.mapper.TransactionMapper;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
 @RequiredArgsConstructor
 public class TransactionPersistenceAdapter implements TransactionPersistencePort {
 
@@ -25,5 +27,12 @@ public class TransactionPersistenceAdapter implements TransactionPersistencePort
         return transactionEntities.stream()
                 .map(TransactionMapper::toDomain)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Transaction save(Transaction transaction) {
+        TransactionEntity entity = TransactionMapper.toEntity(transaction);
+        TransactionEntity saved = transactionRepository.save(entity);
+        return TransactionMapper.toDomain(saved);
     }
 }

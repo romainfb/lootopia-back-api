@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+    <changeSet id="1" author="claude">
+        <createTable tableName="enchere">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="artefact_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_enchere_artefact" referencedTableName="artefact"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="vendeur_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_enchere_vendeur" referencedTableName="utilisateur"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="prix_depart" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="prix_actuel" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="increment_min" type="INTEGER" defaultValue="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="gagnant_actuel_id" type="BIGINT">
+                <constraints nullable="true" foreignKeyName="fk_enchere_gagnant" referencedTableName="utilisateur"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="debut_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="fin_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="statut" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="BIGINT" defaultValue="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="enchere" indexName="idx_enchere_statut_fin_at">
+            <column name="statut"/>
+            <column name="fin_at"/>
+        </createIndex>
+
+        <sql>
+            CREATE UNIQUE INDEX uk_enchere_artefact_active
+                ON enchere (artefact_id) WHERE statut IN ('SCHEDULED','OPEN');
+        </sql>
+    </changeSet>
+
+    <changeSet id="2" author="claude">
+        <createTable tableName="enchere_offre">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="enchere_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_enchere_offre_enchere" referencedTableName="enchere"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="encherisseur_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_enchere_offre_encherisseur"
+                             referencedTableName="utilisateur" referencedColumnNames="id"/>
+            </column>
+            <column name="montant" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="place_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="enchere_offre" indexName="idx_offre_enchere_place_at">
+            <column name="enchere_id"/>
+            <column name="place_at" descending="true"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="3" author="claude">
+        <createTable tableName="solde_blocage">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="utilisateur_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_solde_blocage_utilisateur"
+                             referencedTableName="utilisateur" referencedColumnNames="id"/>
+            </column>
+            <column name="enchere_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_solde_blocage_enchere" referencedTableName="enchere"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="montant" type="INTEGER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="statut" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="solde_blocage" indexName="idx_solde_blocage_user_statut">
+            <column name="utilisateur_id"/>
+            <column name="statut"/>
+        </createIndex>
+
+        <sql>
+            CREATE UNIQUE INDEX uk_solde_blocage_user_enchere_held
+                ON solde_blocage (utilisateur_id, enchere_id) WHERE statut = 'HELD';
+        </sql>
+    </changeSet>
+
+    <changeSet id="4" author="claude">
+        <createTable tableName="outbox_event">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="aggregate_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="aggregate_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="published_at" type="TIMESTAMP">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
