@@ -9,6 +9,8 @@ import lombok.Data;
 @AllArgsConstructor
 public class UserInfoDto {
 
+    //TODO: IMAGE DE PROFIL
+
     private Long id;
 
     private String email;
