@@ -1,7 +1,5 @@
 package com.lootopia.lootopia_app.application.service;
 
-import com.lootopia.lootopia_app.application.port.in.GetArtifactsUseCase;
-import com.lootopia.lootopia_app.application.port.out.KeycloakPort;
 import com.lootopia.lootopia_app.application.port.out.UserPersistencePort;
 import com.lootopia.lootopia_app.domain.AccountType;
 import com.lootopia.lootopia_app.domain.model.User;
