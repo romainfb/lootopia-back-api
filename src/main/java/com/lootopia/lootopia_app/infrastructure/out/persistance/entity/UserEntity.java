@@ -55,6 +55,9 @@ public class UserEntity {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "last_ad_chest_at")
+    private Instant lastAdChestAt;
+
     @PrePersist
     void onCreate() {
         if (createdAt==null) {
