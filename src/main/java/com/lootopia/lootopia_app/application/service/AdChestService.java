@@ -54,6 +54,10 @@ public class AdChestService implements OpenAdChestUseCase {
         this.jwtDecoder = jwtDecoder;
         this.clock = clock;
         this.random = random;
+        if (maxAmount < minAmount) {
+            throw new IllegalArgumentException(
+                    "app.ad-chest.max-amount (" + maxAmount + ") must be >= min-amount (" + minAmount + ")");
+        }
         this.minAmount = minAmount;
         this.maxAmount = maxAmount;
         this.cooldown = cooldown;

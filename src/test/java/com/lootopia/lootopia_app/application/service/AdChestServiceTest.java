@@ -85,6 +85,16 @@ class AdChestServiceTest {
     }
 
     @Test
+    void constructor_throws_when_maxAmount_less_than_minAmount() {
+        assertThatThrownBy(() -> new AdChestService(
+                userPort, txPort, tokenProvider, jwtDecoder,
+                Clock.fixed(FIXED_NOW, ZoneOffset.UTC), new Random(),
+                200, 50, Duration.ofHours(1)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("max-amount");
+    }
+
+    @Test
     void startAdChest_returns_token_when_no_previous_use() {
         UserEntity u = user(null, 0);
         when(userPort.findById(USER_ID)).thenReturn(Optional.of(u));
