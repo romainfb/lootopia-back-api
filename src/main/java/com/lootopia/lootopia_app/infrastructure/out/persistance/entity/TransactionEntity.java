@@ -43,7 +43,7 @@ public class TransactionEntity {
     private Timestamp date;
 
     @ManyToOne
-    @JoinColumn(name = "artefact_id", nullable = false)
+    @JoinColumn(name = "artefact_id")
     private ArtifactEntity artefact;
 
 

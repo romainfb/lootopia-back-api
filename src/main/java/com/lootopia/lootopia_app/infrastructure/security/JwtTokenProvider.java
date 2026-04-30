@@ -21,22 +21,30 @@ public class JwtTokenProvider {
     public static final String CLAIM_EMAIL = "email";
     public static final String TYPE_ACCESS = "access";
     public static final String TYPE_REFRESH = "refresh";
+    public static final String TYPE_AD_WATCH = "ad-watch";
 
     private final JwtEncoder jwtEncoder;
     private final String issuer;
     @Getter
     private final Duration accessTokenTtl;
     private final Duration refreshTokenTtl;
+    @Getter
+    private final Duration adWatchMinDuration;
+    private final Duration adWatchTokenTtl;
 
     public JwtTokenProvider(
             JwtEncoder jwtEncoder,
             @Value("${app.jwt.issuer:lootopia-app}") String issuer,
             @Value("${app.jwt.access-token-ttl:PT15M}") Duration accessTokenTtl,
-            @Value("${app.jwt.refresh-token-ttl:P7D}") Duration refreshTokenTtl) {
+            @Value("${app.jwt.refresh-token-ttl:P7D}") Duration refreshTokenTtl,
+            @Value("${app.jwt.ad-watch-min-duration:PT15S}") Duration adWatchMinDuration,
+            @Value("${app.jwt.ad-watch-token-ttl:PT5M}") Duration adWatchTokenTtl) {
         this.jwtEncoder = jwtEncoder;
         this.issuer = issuer;
         this.accessTokenTtl = accessTokenTtl;
         this.refreshTokenTtl = refreshTokenTtl;
+        this.adWatchMinDuration = adWatchMinDuration;
+        this.adWatchTokenTtl = adWatchTokenTtl;
     }
 
     public String generateAccessToken(UserEntity user) {
@@ -49,6 +57,19 @@ public class JwtTokenProvider {
                 .claim(CLAIM_TYPE, TYPE_ACCESS)
                 .claim(CLAIM_EMAIL, user.getEmail())
                 .claim(CLAIM_ROLES, List.of(user.getAccountType().name()))
+                .build();
+        return encode(claims);
+    }
+
+    public String generateAdWatchToken(UserEntity user) {
+        Instant now = Instant.now();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer(issuer)
+                .issuedAt(now)
+                .notBefore(now.plus(adWatchMinDuration))
+                .expiresAt(now.plus(adWatchTokenTtl))
+                .subject(user.getId().toString())
+                .claim(CLAIM_TYPE, TYPE_AD_WATCH)
                 .build();
         return encode(claims);
     }

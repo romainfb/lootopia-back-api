@@ -22,5 +22,6 @@
     <include file="changelog/changelog-modify-reward-image-url-length.xml" relativeToChangelogFile="true"/>
     <include file="changelog/changelog-add-internal-auth-schema.xml" relativeToChangelogFile="true"/>
     <include file="changelog/changelog-drop-keycloak-id.xml" relativeToChangelogFile="true"/>
+    <include file="changelog/changelog-add-ad-chest.xml" relativeToChangelogFile="true"/>
 
 </databaseChangeLog>

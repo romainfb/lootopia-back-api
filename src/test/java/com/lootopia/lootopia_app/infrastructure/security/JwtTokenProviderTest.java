@@ -43,7 +43,9 @@ class JwtTokenProviderTest {
                 encoder,
                 "test-issuer",
                 Duration.ofMinutes(15),
-                Duration.ofDays(7));
+                Duration.ofDays(7),
+                Duration.ofSeconds(15),
+                Duration.ofMinutes(5));
 
         jwtDecoder = NimbusJwtDecoder.withPublicKey((RSAPublicKey) pair.getPublic()).build();
     }

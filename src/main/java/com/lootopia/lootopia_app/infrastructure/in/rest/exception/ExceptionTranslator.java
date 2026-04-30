@@ -132,6 +132,19 @@ public class ExceptionTranslator {
     }
 
 
+    @ExceptionHandler(CooldownActiveException.class)
+    public ResponseEntity<ErrorResponse> handleCooldownActiveException(CooldownActiveException ex) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                .error("Too Many Requests")
+                .message(ex.getMessage())
+                .build();
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(ex.getRetryAfter().toSeconds()))
+                .body(errorResponse);
+    }
+
     @ExceptionHandler(UnauthorizedAccessException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorizedAccessException(UnauthorizedAccessException ex) {
         ErrorResponse errorResponse = ErrorResponse.builder()
