@@ -25,7 +25,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -48,18 +47,18 @@ public class UserController {
                     content = @Content(mediaType = "application/json"))
     })
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/detail/{id_user}")
-    public ResponseEntity<User> getUserById(@PathVariable @Valid Long id_user) {
-        return getUserUseCase.getUserById(id_user)
+    @GetMapping("/detail")
+    public ResponseEntity<User> getUserById(@CurrentUserId Long userId) {
+        return getUserUseCase.getUserById(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "Get user inventory")
     @PreAuthorize("isAuthenticated()")
-    @GetMapping("/inventory/{id_user}")
-    public ResponseEntity<UserInventory> getUserInventory(@PathVariable @Valid Long id_user) {
-        return getUserUseCase.getUserInventory(id_user)
+    @GetMapping("/inventory")
+    public ResponseEntity<UserInventory> getUserInventory(@CurrentUserId Long userId) {
+        return getUserUseCase.getUserInventory(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
