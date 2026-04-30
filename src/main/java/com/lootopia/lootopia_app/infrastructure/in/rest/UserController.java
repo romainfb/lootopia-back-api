@@ -8,6 +8,7 @@ import com.lootopia.lootopia_app.domain.model.UserInventory;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UpdatePasswordRequestDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserToUpdateDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserUpdatedDto;
+import com.lootopia.lootopia_app.infrastructure.security.CurrentUserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,8 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -73,24 +72,25 @@ public class UserController {
     })
     @PatchMapping("/update")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<UserUpdatedDto> updateUser(@RequestBody @Valid UserToUpdateDto userDto, @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(updateUserUseCase.updateUser(userDto, currentUserId(jwt)));
+    public ResponseEntity<UserUpdatedDto> updateUser(@RequestBody @Valid UserToUpdateDto userDto,
+                                                     @CurrentUserId Long userId) {
+        return ResponseEntity.ok(updateUserUseCase.updateUser(userDto, userId));
     }
 
     @Operation(summary = "Update current user with profile image")
     @PatchMapping(value = "/update-with-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<UserUpdatedDto> updateUserWithImage(@ModelAttribute @Valid UserToUpdateDto userDto,
-                                                              @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(updateUserUseCase.updateUser(userDto, currentUserId(jwt)));
+                                                              @CurrentUserId Long userId) {
+        return ResponseEntity.ok(updateUserUseCase.updateUser(userDto, userId));
     }
 
     @Operation(summary = "Update current user password")
     @PutMapping("/key/update")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> updateUserPassword(@AuthenticationPrincipal Jwt jwt,
+    public ResponseEntity<Void> updateUserPassword(@CurrentUserId Long userId,
                                                    @RequestBody @Valid UpdatePasswordRequestDto dto) {
-        return updateUserUseCase.updatePassword(dto.getPassword(), currentUserId(jwt))
+        return updateUserUseCase.updatePassword(dto.getPassword(), userId)
                 ? ResponseEntity.ok().build()
                 :ResponseEntity.badRequest().build();
     }
@@ -98,21 +98,17 @@ public class UserController {
     @Operation(summary = "Delete current user account")
     @DeleteMapping("/delete-account")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Void> deleteUserById(@AuthenticationPrincipal Jwt jwt) {
-        deleteUserUseCase.deleteUser(currentUserId(jwt));
+    public ResponseEntity<Void> deleteUserById(@CurrentUserId Long userId) {
+        deleteUserUseCase.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Get current user")
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
-        return getUserUseCase.getUserById(currentUserId(jwt))
+    public ResponseEntity<User> getCurrentUser(@CurrentUserId Long userId) {
+        return getUserUseCase.getUserById(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
-    }
-
-    private Long currentUserId(Jwt jwt) {
-        return Long.valueOf(jwt.getSubject());
     }
 }

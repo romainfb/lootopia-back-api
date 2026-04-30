@@ -5,6 +5,7 @@ import com.lootopia.lootopia_app.infrastructure.in.rest.dto.LoginRequestDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.RegisterRequestDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.TokenResponseDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.UserInfoDto;
+import com.lootopia.lootopia_app.infrastructure.security.CurrentUserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,8 +14,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -78,7 +77,7 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "User info")
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
-    public ResponseEntity<UserInfoDto> getUserInfo(@AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(authService.getUserInfo(Long.valueOf(jwt.getSubject())));
+    public ResponseEntity<UserInfoDto> getUserInfo(@CurrentUserId Long userId) {
+        return ResponseEntity.ok(authService.getUserInfo(userId));
     }
 }
