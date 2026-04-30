@@ -19,7 +19,6 @@ public class JwtTokenProvider {
     public static final String CLAIM_TYPE = "typ";
     public static final String CLAIM_ROLES = "roles";
     public static final String CLAIM_EMAIL = "email";
-    public static final String CLAIM_NOT_BEFORE = "nbf";
     public static final String TYPE_ACCESS = "access";
     public static final String TYPE_REFRESH = "refresh";
     public static final String TYPE_AD_WATCH = "ad-watch";
