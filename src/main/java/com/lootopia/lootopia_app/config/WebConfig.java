@@ -1,4 +1,3 @@
-
 package com.lootopia.lootopia_app.config;
 
 import com.lootopia.lootopia_app.infrastructure.security.CurrentUserIdArgumentResolver;
@@ -21,6 +20,14 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins("http://localhost:5173", "https://dev.lootopia-web.lootopia.xyz", "http://localhost:3000", "https://lootopia-marketplace.vercel.app")
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true)
+                .maxAge(3600);
+
+        // Add CORS mapping for file uploads/downloads
+        registry.addMapping("/upload/**")
+                .allowedOrigins("http://localhost:5173", "https://dev.lootopia-web.lootopia.xyz", "http://localhost:3000", "https://lootopia-marketplace.vercel.app")
+                .allowedMethods("GET", "OPTIONS") // Files are typically downloaded with GET, preflight with OPTIONS
                 .allowedHeaders("*")
                 .allowCredentials(true)
                 .maxAge(3600);
