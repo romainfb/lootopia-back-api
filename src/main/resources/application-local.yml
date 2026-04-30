@@ -1,0 +1,9 @@
+logging:
+  level:
+    root: INFO
+    com.lootopia: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.jdbc.core: DEBUG
+  pattern:
+    console: "%clr(%d{HH:mm:ss.SSS}){faint} %clr(%5p) %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} : %m%n%wEx"

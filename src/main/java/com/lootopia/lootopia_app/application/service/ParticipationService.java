@@ -12,11 +12,13 @@ import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFou
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.UnauthorizedAccessException;
 import com.lootopia.lootopia_app.infrastructure.in.rest.mapper.ParticipationMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ParticipationService implements CreateParticipationUseCase, DeleteParticipationUseCase, FetchParticipationUseCase
@@ -27,7 +29,8 @@ public class ParticipationService implements CreateParticipationUseCase, DeleteP
     private final FetchHuntUseCase fetchHuntUseCase;
 
     @Override
-        public Participation createParticipation(ParticipationRequestDto participationRequest, Integer userId) {
+        public Participation createParticipation(ParticipationRequestDto participationRequest) {
+        log.info("Creating participation for user {} in hunt {}", participationRequest.getUserId(), participationRequest.getHuntId());
         Hunt hunt = fetchHuntUseCase.fetchHuntDetail(Long.valueOf(participationRequest.getHuntId()));
 
         if (hunt == null) {
@@ -48,6 +51,7 @@ public class ParticipationService implements CreateParticipationUseCase, DeleteP
 
     @Override
         public void deleteParticipation(Long participationId) {
+        log.info("Deleting participation with id: {}", participationId);
         if (participationPersistencePort.findById(participationId).isEmpty()) {
             throw new ResourceNotFoundException("Participation","participationId", participationId);
         }

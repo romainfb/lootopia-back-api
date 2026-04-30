@@ -10,11 +10,13 @@ import com.lootopia.lootopia_app.domain.model.Hunt;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.InvalidParameterException;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HuntService implements FetchHuntUseCase {
@@ -24,11 +26,13 @@ public class HuntService implements FetchHuntUseCase {
 
     @Override
     public List<Hunt> fetchAllHunts() {
+        log.debug("Fetching all hunts");
         return huntPersistencePort.findAll();
     }
 
     @Override
     public Hunt fetchHuntDetail(Long id) {
+        log.debug("Fetching hunt detail for id: {}", id);
         return huntPersistencePort.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hunt", "id", id));
     }

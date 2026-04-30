@@ -11,6 +11,7 @@ import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFou
 import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
 import com.lootopia.lootopia_app.infrastructure.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -21,6 +22,7 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService implements AuthentificationUseCase {
@@ -34,6 +36,7 @@ public class AuthService implements AuthentificationUseCase {
     @Override
     @Transactional
     public TokenResponseDto register(RegisterRequestDto request) {
+        log.info("Registering new user with email: {}", request.getEmail());
         if (userPersistencePort.existsByEmail(request.getEmail())) {
             throw new InvalidParameterException("Email already registered");
         }
@@ -50,18 +53,22 @@ public class AuthService implements AuthentificationUseCase {
 
     @Override
     public TokenResponseDto login(String email, String password) {
+        log.info("Login attempt for email: {}", email);
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         } catch (AuthenticationException e) {
+            log.warn("Failed login attempt for email: {}", email);
             throw new InvalidParameterException("Invalid credentials");
         }
         UserEntity user = userPersistencePort.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
+        log.info("Login successful for email: {}", email);
         return issueTokens(user);
     }
 
     @Override
     public TokenResponseDto refresh(String refreshToken) {
+        log.debug("Token refresh requested");
         Jwt jwt;
         try {
             jwt = jwtDecoder.decode(refreshToken);

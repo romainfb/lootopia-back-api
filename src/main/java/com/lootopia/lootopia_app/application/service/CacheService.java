@@ -8,8 +8,10 @@ import com.lootopia.lootopia_app.domain.model.Artifact;
 import com.lootopia.lootopia_app.domain.model.Cache;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CacheService implements GetCacheUseCase, ClearCacheUseCase {
@@ -25,6 +27,7 @@ public class CacheService implements GetCacheUseCase, ClearCacheUseCase {
 
     @Override
     public Artifact clearTreasure(Long treasureId, Long userId) {
+        log.info("User {} clearing treasure {}", userId, treasureId);
         Cache treasure = getCacheId(treasureId);
         if (treasure.getArtefactId() == null) {
             throw new ResourceNotFoundException("Artefact in cache", "id", treasureId);
@@ -32,6 +35,7 @@ public class CacheService implements GetCacheUseCase, ClearCacheUseCase {
         Artifact artifact = artifactPersistencePort.findById(treasure.getArtefactId())
                 .orElseThrow(() -> new ResourceNotFoundException("Artifact", "ArtefactId", treasure.getArtefactId()));
         artifact.setUserId(userId);
+        log.info("Treasure {} cleared by user {}, artifact id: {}", treasureId, userId, artifact.getId());
         return artifactPersistencePort.save(artifact);
     }
 }

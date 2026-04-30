@@ -1,10 +1,8 @@
 logging:
   level:
-    org.springframework.web: ERROR
-    org.springframework.jdbc.core: ERROR
-    org.springframework.security: INFO
-    org.springframework.jdbc.datasource: ERROR
-    com.lootopia: DEBUG
+    root: WARN
+    com.lootopia: INFO
+    org.springframework.security: WARN
 
 spring:
   application:
@@ -22,11 +20,18 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+server:
+  tomcat:
+    max-http-form-post-size: 50MB
 
 app:
   jwt:
     issuer: lootopia-app
     access-token-ttl: PT15M
     refresh-token-ttl: P7D
+  admin:
+    ui:
+      enabled: ${ADMIN_UI_ENABLED:false}
