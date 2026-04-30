@@ -21,7 +21,7 @@ public class ArtifactPersistenceAdapter implements ArtifactPersistencePort {
 
     @Override
     public List<Artifact> findByUserId(Long id) {
-        Optional<ArtifactEntity> artifactEntities = artifactRepository.findByUserId(id);
+        List<ArtifactEntity> artifactEntities = artifactRepository.findByUserId(id);
         if (artifactEntities == null || artifactEntities.isEmpty()) {
             return new ArrayList<>();
         }
