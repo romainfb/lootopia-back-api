@@ -56,7 +56,7 @@ public class FileSystemStorageAdapter implements FileStoragePort {
             }
             file.transferTo(destinationFile);
             log.info("File uploaded successfully. Path: {}", destinationFile);
-            return destinationFile.toString();
+            return uniqueFileName;
         } catch (IOException e) {
             log.error("Error uploading file to file system", e);
             throw new IOException("Failed to upload file to file system: " + e.getMessage(), e);
@@ -119,7 +119,7 @@ public class FileSystemStorageAdapter implements FileStoragePort {
             }
             file.transferTo(destinationFile);
             log.info("Reward file uploaded successfully. Path: {}", destinationFile);
-            return destinationFile.toString();
+            return uniqueFileName;
         } catch (IOException e) {
             log.error("Error uploading reward file to file system", e);
             throw new IOException("Failed to upload reward file to file system: " + e.getMessage(), e);
