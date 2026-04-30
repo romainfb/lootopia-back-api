@@ -36,6 +36,8 @@ public class FileController {
                 return;
             }
 
+            // Set the content length to help the client
+            response.setContentLengthLong(resource.contentLength());
             response.setContentType(resolveContentType(filename).toString());
             response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"");
 

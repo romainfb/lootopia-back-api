@@ -76,7 +76,8 @@ public class UserService implements GetUserUseCase, DeleteUserUseCase, UpdateUse
             try {
                 deleteExistingProfileImage(userEntity);
                 MultipartFile imageFile = user.getProfileImage();
-                String fileName = id_user + "_profile_" + imageFile.getOriginalFilename();
+                String originalFileName = imageFile.getOriginalFilename()!=null ? imageFile.getOriginalFilename().replace(" ", "_"):"";
+                String fileName = id_user + "_profile_" + originalFileName;
                 userEntity.setImageUrl(fileStoragePort.uploadFile(imageFile, fileName));
             } catch (IOException e) {
                 throw new RuntimeException("Failed to upload profile image: " + e.getMessage(), e);

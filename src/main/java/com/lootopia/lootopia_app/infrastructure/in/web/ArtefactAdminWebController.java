@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.nio.file.Paths;
-
 @Controller
 @RequestMapping("/admin/artefacts")
 @RequiredArgsConstructor
@@ -55,15 +53,16 @@ public class ArtefactAdminWebController {
         }
 
         try {
-            String absolutePath = fileStoragePort.uploadFile(image, image.getOriginalFilename());
-            String fileName = Paths.get(absolutePath).getFileName().toString();
-            String imageUrl = fileStoragePort.generateUrl(fileName);
+            String originalFileName = image.getOriginalFilename()!=null ? image.getOriginalFilename().replace(" ", "_"):"";
+            String uniqueFileName = fileStoragePort.uploadFile(image, originalFileName);
+            // Store only the unique file name in the database, not the full URL
+            // The full URL will be generated dynamically when needed using fileStoragePort.generateUrl(uniqueFileName)
 
             Artifact artifact = Artifact.builder()
                     .title(request.getTitle())
                     .rarity(request.getRarity())
                     .description(request.getDescription())
-                    .imageUrl(imageUrl)
+                    .imageUrl(uniqueFileName) // Store only the unique file name
                     .cacheId(request.getCacheId())
                     .userId(request.getUserId())
                     .build();
