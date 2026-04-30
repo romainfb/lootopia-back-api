@@ -2,6 +2,7 @@ package com.lootopia.lootopia_app.infrastructure.out.file;
 
 import com.lootopia.lootopia_app.application.port.out.FileStoragePort;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,14 @@ import java.util.UUID;
 @Service
 public class FileSystemStorageAdapter implements FileStoragePort {
 
-    private final Path rootLocation = Paths.get("upload");
-    private final Path rewardsRootLocation = Paths.get("upload/rewards");
+    private final Path rootLocation;
+    private final Path rewardsRootLocation;
 
-    public FileSystemStorageAdapter() {
+    public FileSystemStorageAdapter(
+            @Value("${app.storage.upload-dir:upload}") String uploadDir,
+            @Value("${app.storage.rewards-dir:upload/rewards}") String rewardsDir) {
+        this.rootLocation = Paths.get(uploadDir);
+        this.rewardsRootLocation = Paths.get(rewardsDir);
         try {
             Files.createDirectories(rootLocation);
             Files.createDirectories(rewardsRootLocation);
@@ -76,7 +81,7 @@ public class FileSystemStorageAdapter implements FileStoragePort {
         try {
             Path file = rootLocation.resolve(fileName);
             Resource resource = new UrlResource(file.toUri());
-            if (resource.exists() || resource.isReadable()) {
+            if (resource.exists() && resource.isReadable()) {
                 return resource;
             } else {
                 throw new RuntimeException(
@@ -139,7 +144,7 @@ public class FileSystemStorageAdapter implements FileStoragePort {
         try {
             Path file = rewardsRootLocation.resolve(fileName);
             Resource resource = new UrlResource(file.toUri());
-            if (resource.exists() || resource.isReadable()) {
+            if (resource.exists() && resource.isReadable()) {
                 return resource;
             } else {
                 throw new RuntimeException(

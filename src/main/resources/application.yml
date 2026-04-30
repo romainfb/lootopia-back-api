@@ -35,3 +35,6 @@ app:
   admin:
     ui:
       enabled: ${ADMIN_UI_ENABLED:false}
+  storage:
+    upload-dir: ${UPLOAD_DIR:upload}
+    rewards-dir: ${UPLOAD_DIR:upload}/rewards
