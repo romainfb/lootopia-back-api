@@ -104,12 +104,20 @@ public class AdChestService implements OpenAdChestUseCase {
         Instant unlockAt = last.plus(cooldown);
         if (now.isBefore(unlockAt)) {
             Duration remaining = Duration.between(now, unlockAt);
+            Duration roundedRemaining = ceilToWholeSeconds(remaining);
             throw new CooldownActiveException(
-                    "Ad chest cooldown active. Retry in " + remaining.toSeconds() + "s",
-                    remaining);
+                    "Ad chest cooldown active. Retry in " + roundedRemaining.toSeconds() + "s",
+                    roundedRemaining);
         }
     }
 
+    private Duration ceilToWholeSeconds(Duration duration) {
+        long seconds = duration.getSeconds();
+        if (duration.getNano() > 0) {
+            seconds++;
+        }
+        return Duration.ofSeconds(seconds);
+    }
     private Long decodeAndValidateToken(String adWatchToken) {
         Jwt jwt;
         try {
