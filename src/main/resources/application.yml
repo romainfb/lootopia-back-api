@@ -1,10 +1,11 @@
 logging:
   level:
-    org.springframework.web: ERROR
-    org.springframework.jdbc.core: ERROR
-    org.springframework.security: INFO
-    org.springframework.jdbc.datasource: ERROR
-    com.lootopia: DEBUG
+    root: WARN
+    com.lootopia: INFO
+    org.springframework.security: WARN
+  structured:
+    format:
+      console: ecs
 
 spring:
   application:

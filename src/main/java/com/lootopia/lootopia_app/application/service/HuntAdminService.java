@@ -1,14 +1,16 @@
 package com.lootopia.lootopia_app.application.service;
 
 import com.lootopia.lootopia_app.application.port.in.CreateHuntUseCase;
-import com.lootopia.lootopia_app.application.port.in.UpdateHuntUseCase;
 import com.lootopia.lootopia_app.application.port.in.DeleteHuntUseCase;
+import com.lootopia.lootopia_app.application.port.in.UpdateHuntUseCase;
 import com.lootopia.lootopia_app.application.port.out.HuntPersistencePort;
 import com.lootopia.lootopia_app.domain.model.Hunt;
 import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class HuntAdminService implements CreateHuntUseCase, UpdateHuntUseCase, DeleteHuntUseCase {
@@ -17,11 +19,15 @@ public class HuntAdminService implements CreateHuntUseCase, UpdateHuntUseCase, D
 
     @Override
     public Hunt createHunt(Hunt hunt) {
-        return huntPersistencePort.saveHunt(hunt);
+        log.info("Creating hunt: {}", hunt.getTitle());
+        Hunt saved = huntPersistencePort.saveHunt(hunt);
+        log.info("Hunt created with id: {}", saved.getId());
+        return saved;
     }
 
     @Override
     public Hunt updateHunt(Long id, Hunt hunt) {
+        log.info("Updating hunt with id: {}", id);
         Hunt existingHunt = huntPersistencePort.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hunt", "id", id));
 
@@ -51,6 +57,7 @@ public class HuntAdminService implements CreateHuntUseCase, UpdateHuntUseCase, D
 
     @Override
     public void deleteHunt(Long id) {
+        log.info("Deleting hunt with id: {}", id);
         Hunt existingHunt = huntPersistencePort.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Hunt", "id", id));
         huntPersistencePort.deleteHunt(existingHunt);

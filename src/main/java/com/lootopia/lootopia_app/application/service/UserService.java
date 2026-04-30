@@ -17,8 +17,7 @@ import com.lootopia.lootopia_app.infrastructure.in.rest.exception.ResourceNotFou
 import com.lootopia.lootopia_app.infrastructure.out.persistance.entity.UserEntity;
 import com.lootopia.lootopia_app.infrastructure.out.persistance.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,11 +26,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService implements GetUserUseCase, DeleteUserUseCase, UpdateUserUseCase, FetchAllUsersUseCase {
-
-    private static final Logger log = LoggerFactory.getLogger(UserService.class);
     private final UserPersistencePort userPersistencePort;
     private final GetArtifactsUseCase getArtifactsUseCase;
     private final FileStoragePort fileStoragePort;
@@ -39,6 +37,7 @@ public class UserService implements GetUserUseCase, DeleteUserUseCase, UpdateUse
 
     @Override
     public Optional<User> getUserById(Long id_user) {
+        log.debug("Fetching user by id: {}", id_user);
         if (id_user == null) throw new InvalidParameterException("User ID cannot be null");
         UserEntity entity = userPersistencePort.findById(id_user)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id_user));
@@ -56,6 +55,7 @@ public class UserService implements GetUserUseCase, DeleteUserUseCase, UpdateUse
 
     @Override
     public void deleteUser(Long id_user) {
+        log.info("Deleting user with id: {}", id_user);
         if (userPersistencePort.findById(id_user).isEmpty()) {
             throw new ResourceNotFoundException("User", "id", id_user);
         }
@@ -92,6 +92,7 @@ public class UserService implements GetUserUseCase, DeleteUserUseCase, UpdateUse
 
     @Override
     public Boolean updatePassword(String password, Long userId) {
+        log.info("Updating password for user id: {}", userId);
         UserEntity userEntity = userPersistencePort.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         userEntity.setPasswordHash(passwordEncoder.encode(password));
