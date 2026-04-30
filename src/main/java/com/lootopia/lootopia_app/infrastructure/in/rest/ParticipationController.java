@@ -7,6 +7,7 @@ import com.lootopia.lootopia_app.application.port.in.FetchParticipationUseCase;
 import com.lootopia.lootopia_app.domain.model.Participation;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.ParticipationRequestDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.mapper.ParticipationMapper;
+import com.lootopia.lootopia_app.infrastructure.security.CurrentUserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,11 +58,13 @@ public class ParticipationController {
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = "application/json"))
     })
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Participation createParticipation(@RequestBody @Valid ParticipationRequestDto participationRequest) {
+    public Participation createParticipation(@RequestBody @Valid ParticipationRequestDto participationRequest,
+                                             @CurrentUserId Long userId) {
         log.info("create a new participation : {}", participationRequest);
-        return createParticipationUseCase.createParticipation(participationRequest);
+        return createParticipationUseCase.createParticipation(participationRequest, userId.intValue());
     }
 
     @Operation(

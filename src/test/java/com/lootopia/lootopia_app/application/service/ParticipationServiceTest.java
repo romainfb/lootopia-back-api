@@ -42,7 +42,6 @@ class ParticipationServiceTest {
 
         requestDto = ParticipationRequestDto.builder()
                 .huntId(37)
-                .userId(1)
                 .statut(ParticipationStatut.PARTICIPANT)
                 .build();
 
@@ -67,11 +66,11 @@ class ParticipationServiceTest {
         when(fetchHuntUseCase.fetchHuntDetail(eq(37L))).thenReturn(sampleHunt);
         when(participationPersistencePort.findByHuntIdAndUserId(eq(37L), eq(1))).thenReturn(Optional.empty());
         when(participationPersistencePort.countByHuntId(eq(37L))).thenReturn(2L);
-        when(participationMapper.ParticipationRequestToParticipation(eq(requestDto), eq(sampleHunt.getOrganizerId())))
+        when(participationMapper.ParticipationRequestToParticipation(eq(requestDto), eq(1), eq(sampleHunt.getOrganizerId())))
                 .thenReturn(participation);
         when(participationPersistencePort.saveParticipation(eq(participation))).thenReturn(participation);
 
-        Participation result = participationService.createParticipation(requestDto);
+        Participation result = participationService.createParticipation(requestDto, 1);
         assertNotNull(result);
         assertEquals(1, result.getUserId());
         assertEquals(37, result.getHuntId());
@@ -83,7 +82,7 @@ class ParticipationServiceTest {
         when(fetchHuntUseCase.fetchHuntDetail(eq(37L))).thenReturn(null);
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () ->
-                participationService.createParticipation(requestDto)
+                participationService.createParticipation(requestDto, 1)
         );
         assertTrue(exception.getMessage().contains("Hunt"));
     }
@@ -95,7 +94,7 @@ class ParticipationServiceTest {
                 .thenReturn(Optional.of(participation));
 
         UnauthorizedAccessException exception = assertThrows(UnauthorizedAccessException.class, () ->
-                participationService.createParticipation(requestDto)
+                participationService.createParticipation(requestDto, 1)
         );
         assertTrue(exception.getMessage().contains("déjà inscrit"));
     }
@@ -108,7 +107,7 @@ class ParticipationServiceTest {
         when(participationPersistencePort.countByHuntId(eq(37L))).thenReturn(5L);
 
         UnauthorizedAccessException exception = assertThrows(UnauthorizedAccessException.class, () ->
-                participationService.createParticipation(requestDto)
+                participationService.createParticipation(requestDto, 1)
         );
         assertTrue(exception.getMessage().contains("atteint sa capacité maximale"));
     }

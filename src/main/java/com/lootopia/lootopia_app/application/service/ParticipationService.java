@@ -37,7 +37,7 @@ public class ParticipationService implements CreateParticipationUseCase, DeleteP
             throw new ResourceNotFoundException("Hunt","huntId", participationRequest.getHuntId());
         }
 
-        if (participationPersistencePort.findByHuntIdAndUserId(Long.valueOf(participationRequest.getHuntId()), participationRequest.getUserId()).isPresent()) {
+        if (participationPersistencePort.findByHuntIdAndUserId(Long.valueOf(participationRequest.getHuntId()), userId).isPresent()) {
             throw new UnauthorizedAccessException("L'utilisateur est déjà inscrit à cette chasse.");
         }
 
@@ -46,7 +46,7 @@ public class ParticipationService implements CreateParticipationUseCase, DeleteP
             throw new UnauthorizedAccessException("La chasse " + hunt.getTitle() + " a atteint sa capacité maximale.");
         }
 
-        return participationPersistencePort.saveParticipation(participationMapper.ParticipationRequestToParticipation(participationRequest,hunt.getOrganizerId()));
+        return participationPersistencePort.saveParticipation(participationMapper.ParticipationRequestToParticipation(participationRequest, userId, hunt.getOrganizerId()));
     }
 
     @Override

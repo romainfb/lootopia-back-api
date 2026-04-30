@@ -10,14 +10,16 @@ import java.sql.Timestamp;
 @Component
 public class ParticipationMapper {
 
-    public Participation ParticipationRequestToParticipation(ParticipationRequestDto participationRequest, Integer organizerId) {
+    public Participation ParticipationRequestToParticipation(ParticipationRequestDto participationRequest,
+                                                             Integer userId,
+                                                             Integer organizerId) {
 
         if (participationRequest == null) {
             return null;
         }
 
         return Participation.builder()
-                .userId(participationRequest.getUserId())
+                .userId(userId)
                 .huntId(participationRequest.getHuntId())
                 .statut(participationRequest.getStatut())
                 .organizerId(organizerId)

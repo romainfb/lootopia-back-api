@@ -9,6 +9,5 @@ import lombok.Data;
 @Builder
 public class ParticipationRequestDto {
     private Integer huntId;
-    private Integer userId;
     private ParticipationStatut statut;
 }

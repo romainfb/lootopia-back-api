@@ -13,11 +13,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin/artefacts")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class ArtefactAdminController {
 
     private final CreateArtefactUseCase createArtefactUseCase;

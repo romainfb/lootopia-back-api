@@ -4,6 +4,7 @@ import com.lootopia.lootopia_app.application.port.in.OpenAdChestUseCase;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.AdChestOpenRequest;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.AdChestOpenResponse;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.AdChestStartResponse;
+import com.lootopia.lootopia_app.infrastructure.security.CurrentUserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -11,8 +12,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,9 +33,8 @@ public class AdChestController {
     })
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/start")
-    public ResponseEntity<AdChestStartResponse> start(@AuthenticationPrincipal Jwt jwt) {
-        OpenAdChestUseCase.StartAdChestResult result =
-                openAdChestUseCase.startAdChest(Long.valueOf(jwt.getSubject()));
+    public ResponseEntity<AdChestStartResponse> start(@CurrentUserId Long userId) {
+        OpenAdChestUseCase.StartAdChestResult result = openAdChestUseCase.startAdChest(userId);
         return ResponseEntity.ok(AdChestStartResponse.builder()
                 .adWatchToken(result.adWatchToken())
                 .minWatchSeconds(result.minWatchSeconds())
@@ -54,10 +52,10 @@ public class AdChestController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/open")
     public ResponseEntity<AdChestOpenResponse> open(
-            @AuthenticationPrincipal Jwt jwt,
+            @CurrentUserId Long userId,
             @RequestBody @Valid AdChestOpenRequest request) {
-        OpenAdChestUseCase.OpenAdChestResult result = openAdChestUseCase.openAdChest(
-                Long.valueOf(jwt.getSubject()), request.getAdWatchToken());
+        OpenAdChestUseCase.OpenAdChestResult result =
+                openAdChestUseCase.openAdChest(userId, request.getAdWatchToken());
         return ResponseEntity.ok(AdChestOpenResponse.builder()
                 .amount(result.amount())
                 .newBalance(result.newBalance())
