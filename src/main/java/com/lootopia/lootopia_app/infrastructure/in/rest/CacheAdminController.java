@@ -12,12 +12,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.media.Content;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/treasure")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class CacheAdminController {
 
     private final CreateCacheUseCase createCacheUseCase;

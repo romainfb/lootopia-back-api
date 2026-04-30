@@ -8,14 +8,20 @@ import com.lootopia.lootopia_app.domain.ParticipationStatut;
 import com.lootopia.lootopia_app.domain.model.Participation;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.ParticipationRequestDto;
 import com.lootopia.lootopia_app.infrastructure.in.rest.mapper.ParticipationMapper;
+import com.lootopia.lootopia_app.infrastructure.security.CurrentUserId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -51,14 +57,26 @@ public class ParticipationControllerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(participationController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(participationController)
+                .setCustomArgumentResolvers(new HandlerMethodArgumentResolver() {
+                    @Override
+                    public boolean supportsParameter(MethodParameter parameter) {
+                        return parameter.hasParameterAnnotation(CurrentUserId.class);
+                    }
+
+                    @Override
+                    public Object resolveArgument(MethodParameter p, ModelAndViewContainer m,
+                                                  NativeWebRequest r, WebDataBinderFactory b) {
+                        return 1L;
+                    }
+                })
+                .build();
     }
 
     @Test
     void testCreateParticipation() throws Exception {
         ParticipationRequestDto requestDto = ParticipationRequestDto.builder()
                 .huntId(37)
-                .userId(1)
                 .statut(ParticipationStatut.PARTICIPANT)
                 .build();
 
@@ -69,7 +87,7 @@ public class ParticipationControllerTest {
                 .dateInscription(new Timestamp(System.currentTimeMillis()))
                 .build();
 
-        when(createParticipationUseCase.createParticipation(any(ParticipationRequestDto.class)))
+        when(createParticipationUseCase.createParticipation(any(ParticipationRequestDto.class), any(Integer.class)))
                 .thenReturn(participation);
 
         mockMvc.perform(post("/api/participation")

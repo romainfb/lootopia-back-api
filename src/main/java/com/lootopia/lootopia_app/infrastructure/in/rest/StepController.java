@@ -3,13 +3,14 @@ package com.lootopia.lootopia_app.infrastructure.in.rest;
 import com.lootopia.lootopia_app.application.port.in.ClearStepUseCase;
 import com.lootopia.lootopia_app.application.port.in.FetchStepUseCase;
 import com.lootopia.lootopia_app.domain.model.Step;
-import com.lootopia.lootopia_app.infrastructure.in.rest.dto.ClearStepRequest;
+import com.lootopia.lootopia_app.infrastructure.security.CurrentUserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.media.Content;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -62,11 +63,12 @@ public class StepController {
             @ApiResponse(responseCode = "400", description = "Données invalides", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "500", description = "Erreur interne", content = @Content(mediaType = "application/json"))
     })
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/{stepId}/clear")
     @ResponseStatus(HttpStatus.OK)
     public Step clearStep(@PathVariable Long huntId,
                           @PathVariable Long stepId,
-                          @RequestBody ClearStepRequest request) {
-        return clearStepUseCase.clearStep(huntId, stepId, request.getUserId());
+                          @CurrentUserId Long userId) {
+        return clearStepUseCase.clearStep(huntId, stepId, userId);
     }
 }

@@ -27,14 +27,14 @@ public class ParticipationService implements CreateParticipationUseCase, DeleteP
     private final FetchHuntUseCase fetchHuntUseCase;
 
     @Override
-        public Participation createParticipation(ParticipationRequestDto participationRequest) {
+        public Participation createParticipation(ParticipationRequestDto participationRequest, Integer userId) {
         Hunt hunt = fetchHuntUseCase.fetchHuntDetail(Long.valueOf(participationRequest.getHuntId()));
 
         if (hunt == null) {
             throw new ResourceNotFoundException("Hunt","huntId", participationRequest.getHuntId());
         }
 
-        if (participationPersistencePort.findByHuntIdAndUserId(Long.valueOf(participationRequest.getHuntId()), participationRequest.getUserId()).isPresent()) {
+        if (participationPersistencePort.findByHuntIdAndUserId(Long.valueOf(participationRequest.getHuntId()), userId).isPresent()) {
             throw new UnauthorizedAccessException("L'utilisateur est déjà inscrit à cette chasse.");
         }
 
@@ -43,7 +43,7 @@ public class ParticipationService implements CreateParticipationUseCase, DeleteP
             throw new UnauthorizedAccessException("La chasse " + hunt.getTitle() + " a atteint sa capacité maximale.");
         }
 
-        return participationPersistencePort.saveParticipation(participationMapper.ParticipationRequestToParticipation(participationRequest,hunt.getOrganizerId()));
+        return participationPersistencePort.saveParticipation(participationMapper.ParticipationRequestToParticipation(participationRequest, userId, hunt.getOrganizerId()));
     }
 
     @Override

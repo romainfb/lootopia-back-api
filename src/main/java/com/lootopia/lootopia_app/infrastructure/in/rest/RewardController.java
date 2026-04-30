@@ -5,12 +5,14 @@ import com.lootopia.lootopia_app.application.port.in.GetRewardsUseCase;
 import com.lootopia.lootopia_app.domain.model.Reward;
 import com.lootopia.lootopia_app.infrastructure.in.rest.dto.RewardResponse;
 import com.lootopia.lootopia_app.infrastructure.in.rest.mapper.RewardMapper;
+import com.lootopia.lootopia_app.infrastructure.security.CurrentUserId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,11 +54,11 @@ public class RewardController {
     }
 
     @Operation(
-            summary = "Associate a reward with a player",
-            description = "Associates the specified reward with the specified player."
+            summary = "Claim a reward",
+            description = "Associates the specified reward with the authenticated user."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Reward associated successfully",
+            @ApiResponse(responseCode = "200", description = "Reward claimed successfully",
                     content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "400", description = "Invalid input",
                     content = @Content(mediaType = "application/json")),
@@ -65,12 +67,13 @@ public class RewardController {
             @ApiResponse(responseCode = "500", description = "Internal server error",
                     content = @Content(mediaType = "application/json"))
     })
-    @PatchMapping("/{rewardId}/player/{playerId}")
+    @PreAuthorize("isAuthenticated()")
+    @PatchMapping("/{rewardId}/claim")
     @ResponseStatus(HttpStatus.OK)
-    public RewardResponse associateRewardWithPlayer(
+    public RewardResponse claimReward(
             @PathVariable("rewardId") Long rewardId,
-            @PathVariable("playerId") Long playerId) {
-        Reward reward = associateRewardWithPlayerUseCase.associateRewardWithPlayer(rewardId, playerId);
+            @CurrentUserId Long userId) {
+        Reward reward = associateRewardWithPlayerUseCase.associateRewardWithPlayer(rewardId, userId);
         return rewardMapper.toResponse(reward);
     }
 }
