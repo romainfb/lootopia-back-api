@@ -12,7 +12,7 @@
     </changeSet>
 
     <changeSet id="drop-not-null-transaction-artefact-id" author="Florian Pescot-Jourdan">
-        <dropNotNullConstraint tableName="transaction" columnName="artefact_id" columnDataType="BIGINT"/>
+        <dropNotNullConstraint tableName="transaction" columnName="artefact_id" columnDataType="integer"/>
     </changeSet>
 
 </databaseChangeLog>
