@@ -1,39 +1,61 @@
 package com.lootopia.lootopia_app.infrastructure.in.rest;
 
 import com.lootopia.lootopia_app.application.port.out.FileStoragePort;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 @Slf4j
-@RestController
+@Controller
 @RequiredArgsConstructor
 public class FileController {
 
     private final FileStoragePort fileStoragePort;
 
     @GetMapping("/upload/{filename:.+}")
-    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
+    @ResponseBody
+    public void serveFile(@PathVariable String filename, HttpServletResponse response) {
         try {
             Resource resource = fileStoragePort.downloadFile(filename);
-            return ResponseEntity.ok()
-                    .contentType(resolveContentType(filename))
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
-                    .body(new InputStreamResource(resource.getInputStream()));
+            if (!resource.exists() || !resource.isReadable()) {
+                log.error("File not found or not readable: {}", filename);
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.getWriter().write("{\"error\": \"File not found\"}");
+                return;
+            }
+
+            response.setContentType(resolveContentType(filename).toString());
+            response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"");
+
+            try (InputStream inputStream = resource.getInputStream()) {
+                StreamUtils.copy(inputStream, response.getOutputStream());
+                response.flushBuffer();
+            }
+
         } catch (IOException e) {
-            log.error("Error serving file {}: {}", filename, e.getMessage());
-            // Client likely disconnected, so we just log and let the connection close.
-            // No need to return an error response to a disconnected client.
-            return ResponseEntity.status(500).build(); // Or just return null/empty response if preferred
+            // This is expected if the client disconnects during the download
+            log.warn("Error serving file {}: {}. Client likely disconnected.", filename, e.getMessage());
+        } catch (RuntimeException e) {
+            log.error("Could not serve file {}: {}", filename, e.getMessage());
+            try {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                response.getWriter().write("{\"error\": \"Could not serve file\"}");
+            } catch (IOException ex) {
+                log.error("Error writing error response: {}", ex.getMessage());
+            }
         }
     }
 
