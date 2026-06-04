@@ -25,7 +25,9 @@ public class AdChestController {
     private final OpenAdChestUseCase openAdChestUseCase;
 
     @Operation(summary = "Start an ad-chest session",
-            description = "Returns a signed token the client must hand back to /open after watching the ad.")
+            description = "Returns a random ad video to play (adVideoUrl + videoType: 'youtube' for an iframe " +
+                    "embed URL, 'file' for a direct video file) and a signed token the client must hand back to "
+                    + "/open after watching the ad for at least minWatchSeconds.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Ad-watch token issued"),
             @ApiResponse(responseCode = "429", description = "Cooldown active"),
