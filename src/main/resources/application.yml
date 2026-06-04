@@ -38,3 +38,9 @@ app:
   storage:
     upload-dir: ${UPLOAD_DIR:upload}
     rewards-dir: ${UPLOAD_DIR:upload}/rewards
+  ad-chest:
+    min-amount: 50
+    max-amount: 200
+    cooldown: PT1H
+    # Use YouTube embed URLs (youtube.com/embed/<VIDEO_ID>) — rendered as an iframe on the front.
+    video-urls: ${AD_CHEST_VIDEO_URLS:https://www.youtube.com/embed/jKwPKf6DeGY,https://www.youtube.com/embed/OskI6bDrZVM}

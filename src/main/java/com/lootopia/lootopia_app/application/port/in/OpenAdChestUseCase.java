@@ -6,7 +6,7 @@ public interface OpenAdChestUseCase {
 
     OpenAdChestResult openAdChest(Long userId, String adWatchToken);
 
-    record StartAdChestResult(String adWatchToken, long minWatchSeconds) {}
+    record StartAdChestResult(String adWatchToken, long minWatchSeconds, String adVideoUrl, String videoType) {}
 
     record OpenAdChestResult(int amount, int newBalance) {}
 }

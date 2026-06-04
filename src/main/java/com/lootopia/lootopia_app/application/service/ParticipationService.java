@@ -50,7 +50,7 @@ public class ParticipationService implements CreateParticipationUseCase, DeleteP
     }
 
     @Override
-    public void deleteParticipation(Long participationId) {
+        public void deleteParticipation(Long participationId) {
         log.info("Deleting participation with id: {}", participationId);
         if (participationPersistencePort.findById(participationId).isEmpty()) {
             throw new ResourceNotFoundException("Participation","participationId", participationId);

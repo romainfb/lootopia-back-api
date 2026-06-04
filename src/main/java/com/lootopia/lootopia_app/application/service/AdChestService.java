@@ -21,6 +21,7 @@ import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Random;
 
 @Service
@@ -37,6 +38,7 @@ public class AdChestService implements OpenAdChestUseCase {
     private final int minAmount;
     private final int maxAmount;
     private final Duration cooldown;
+    private final List<String> videoUrls;
 
     public AdChestService(
             UserPersistencePort userPersistencePort,
@@ -47,7 +49,8 @@ public class AdChestService implements OpenAdChestUseCase {
             Random random,
             @Value("${app.ad-chest.min-amount:50}") int minAmount,
             @Value("${app.ad-chest.max-amount:200}") int maxAmount,
-            @Value("${app.ad-chest.cooldown:PT1H}") Duration cooldown) {
+            @Value("${app.ad-chest.cooldown:PT1H}") Duration cooldown,
+            @Value("${app.ad-chest.video-urls:}") List<String> videoUrls) {
         this.userPersistencePort = userPersistencePort;
         this.transactionPersistencePort = transactionPersistencePort;
         this.jwtTokenProvider = jwtTokenProvider;
@@ -61,6 +64,10 @@ public class AdChestService implements OpenAdChestUseCase {
         this.minAmount = minAmount;
         this.maxAmount = maxAmount;
         this.cooldown = cooldown;
+        this.videoUrls = videoUrls.stream().filter(url -> !url.isBlank()).toList();
+        if (this.videoUrls.isEmpty()) {
+            throw new IllegalArgumentException("app.ad-chest.video-urls must contain at least one URL");
+        }
     }
 
     @Override
@@ -69,7 +76,20 @@ public class AdChestService implements OpenAdChestUseCase {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         ensureCooldownElapsed(user);
         String token = jwtTokenProvider.generateAdWatchToken(user);
-        return new StartAdChestResult(token, jwtTokenProvider.getAdWatchMinDuration().toSeconds());
+        String adVideoUrl = videoUrls.get(random.nextInt(videoUrls.size()));
+        return new StartAdChestResult(
+                token,
+                jwtTokenProvider.getAdWatchMinDuration().toSeconds(),
+                adVideoUrl,
+                resolveVideoType(adVideoUrl));
+    }
+
+    private String resolveVideoType(String url) {
+        String lower = url.toLowerCase();
+        if (lower.contains("youtube.com") || lower.contains("youtu.be")) {
+            return "youtube";
+        }
+        return "file";
     }
 
     @Override

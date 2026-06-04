@@ -8,4 +8,6 @@ import lombok.Data;
 public class AdChestStartResponse {
     private String adWatchToken;
     private long minWatchSeconds;
+    private String adVideoUrl;
+    private String videoType;
 }

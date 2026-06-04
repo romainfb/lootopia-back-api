@@ -38,6 +38,8 @@ public class AdChestController {
         return ResponseEntity.ok(AdChestStartResponse.builder()
                 .adWatchToken(result.adWatchToken())
                 .minWatchSeconds(result.minWatchSeconds())
+                .adVideoUrl(result.adVideoUrl())
+                .videoType(result.videoType())
                 .build());
     }
 

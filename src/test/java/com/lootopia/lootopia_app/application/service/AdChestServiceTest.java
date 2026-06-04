@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -54,12 +55,14 @@ class AdChestServiceTest {
         jwtDecoder = mock(JwtDecoder.class);
         Clock clock = Clock.fixed(FIXED_NOW, ZoneOffset.UTC);
         Random fixedRandom = new Random() {
-            @Override public int nextInt(int bound) { return 50; } // → amount = 50 + 50 = 100
+            // amount range spans 151 (200-50+1) → returns 50 so amount = 50 + 50 = 100.
+            // video-url pick uses bound = list size → returns 0 (first/only url).
+            @Override public int nextInt(int bound) { return bound > 50 ? 50 : 0; }
         };
         service = new AdChestService(
                 userPort, txPort, tokenProvider, jwtDecoder,
                 clock, fixedRandom,
-                50, 200, Duration.ofHours(1));
+                50, 200, Duration.ofHours(1), List.of("https://cdn.test/ad.mp4"));
     }
 
     private UserEntity user(Instant lastAdChestAt, int balance) {
@@ -89,7 +92,7 @@ class AdChestServiceTest {
         assertThatThrownBy(() -> new AdChestService(
                 userPort, txPort, tokenProvider, jwtDecoder,
                 Clock.fixed(FIXED_NOW, ZoneOffset.UTC), new Random(),
-                200, 50, Duration.ofHours(1)))
+                200, 50, Duration.ofHours(1), List.of("https://cdn.test/ad.mp4")))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("max-amount");
     }
@@ -105,6 +108,36 @@ class AdChestServiceTest {
 
         assertThat(result.adWatchToken()).isEqualTo("tok");
         assertThat(result.minWatchSeconds()).isEqualTo(15L);
+        assertThat(result.adVideoUrl()).isEqualTo("https://cdn.test/ad.mp4");
+        assertThat(result.videoType()).isEqualTo("file");
+    }
+
+    @Test
+    void startAdChest_marks_youtube_urls_as_youtube_type() {
+        AdChestService youtubeService = new AdChestService(
+                userPort, txPort, tokenProvider, jwtDecoder,
+                Clock.fixed(FIXED_NOW, ZoneOffset.UTC), new Random(),
+                50, 200, Duration.ofHours(1),
+                List.of("https://www.youtube.com/embed/abc123"));
+        UserEntity u = user(null, 0);
+        when(userPort.findById(USER_ID)).thenReturn(Optional.of(u));
+        when(tokenProvider.generateAdWatchToken(u)).thenReturn("tok");
+        when(tokenProvider.getAdWatchMinDuration()).thenReturn(Duration.ofSeconds(15));
+
+        StartAdChestResult result = youtubeService.startAdChest(USER_ID);
+
+        assertThat(result.adVideoUrl()).isEqualTo("https://www.youtube.com/embed/abc123");
+        assertThat(result.videoType()).isEqualTo("youtube");
+    }
+
+    @Test
+    void constructor_throws_when_no_video_urls() {
+        assertThatThrownBy(() -> new AdChestService(
+                userPort, txPort, tokenProvider, jwtDecoder,
+                Clock.fixed(FIXED_NOW, ZoneOffset.UTC), new Random(),
+                50, 200, Duration.ofHours(1), List.of()))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("video-urls");
     }
 
     @Test
